@@ -1,0 +1,556 @@
+:root {
+  --fundo: #f6f4f1;
+  --superficie: #ffffff;
+  --texto: #1f2933;
+  --texto-suave: #5f6b76;
+  --borda: #e3dfd9;
+  --destaque: #c2410c;
+  --destaque-fundo: #fff1e8;
+  --confirmado: #0f766e;
+  --confirmado-fundo: #e7f5f2;
+  --erro: #b42318;
+  --erro-fundo: #fef3f2;
+  --raio: 14px;
+  color-scheme: light;
+}
+
+/* Sem escolha salva, segue o tema do aparelho; com escolha, o botão manda. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --fundo: #161a1e;
+    --superficie: #1f252b;
+    --texto: #eef1f4;
+    --texto-suave: #a3adb7;
+    --borda: #323a42;
+    --destaque: #fb923c;
+    --destaque-fundo: #2b211b;
+    --confirmado: #2dd4bf;
+    --confirmado-fundo: #132b29;
+    --erro: #fda29b;
+    --erro-fundo: #3a1f1d;
+    color-scheme: dark;
+  }
+}
+
+:root[data-tema="escuro"] {
+  --fundo: #161a1e;
+  --superficie: #1f252b;
+  --texto: #eef1f4;
+  --texto-suave: #a3adb7;
+  --borda: #323a42;
+  --destaque: #fb923c;
+  --destaque-fundo: #2b211b;
+  --confirmado: #2dd4bf;
+  --confirmado-fundo: #132b29;
+  --erro: #fda29b;
+  --erro-fundo: #3a1f1d;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.45;
+}
+
+.pagina {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.botao-secundario {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.botao-secundario[aria-pressed="true"] {
+  border-color: var(--destaque);
+  color: var(--destaque);
+}
+
+.cabecalho-resultado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 10px;
+}
+
+.marca {
+  margin: 0;
+  color: var(--destaque);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+h1 {
+  margin: 2px 0 0;
+  font-size: 1.6rem;
+}
+
+.negocio {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.titulo-secao {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.periodo,
+.bloco,
+.cartao {
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+
+.periodo {
+  padding: 16px;
+}
+
+.atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.atalho {
+  border: 1px solid var(--borda);
+  background: transparent;
+  color: var(--texto);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.atalho[aria-pressed="true"] {
+  background: var(--destaque-fundo);
+  border-color: var(--destaque);
+  color: var(--destaque);
+  font-weight: 600;
+}
+
+.datas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.datas label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+input[type="date"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: var(--fundo);
+  color: var(--texto);
+  font: inherit;
+}
+
+.botao {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--destaque);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.erro {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--erro-fundo);
+  color: var(--erro);
+}
+
+.descricao {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.cartoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cartao {
+  padding: 14px;
+}
+
+.cartao h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+
+.cartao .valor {
+  margin: 4px 0 2px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.cartao .detalhe {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.cartao.destaque {
+  border-color: var(--destaque);
+  background: var(--destaque-fundo);
+}
+
+.cartao.destaque .valor {
+  color: var(--destaque);
+}
+
+.cartao.confirmado {
+  border-color: var(--confirmado);
+  background: var(--confirmado-fundo);
+}
+
+.cartao.confirmado .valor {
+  color: var(--confirmado);
+}
+
+.bloco {
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.tabela-rolavel {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--borda);
+  text-align: left;
+  white-space: nowrap;
+}
+
+th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cabeçalhos longos quebram em duas linhas para a tabela caber no celular. */
+th.num {
+  white-space: normal;
+}
+
+td.confirmado {
+  color: var(--confirmado);
+  font-weight: 600;
+}
+
+.produtos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.produto {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.produto:last-child {
+  border-bottom: 0;
+}
+
+.produto img,
+.produto .sem-imagem {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--fundo);
+}
+
+.produto .nome {
+  margin: 0;
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.produto .numeros {
+  text-align: right;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.produto .numeros strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.vazio,
+.rodape {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.rodape {
+  margin-top: 16px;
+}
+
+.pagina-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.cartao-login {
+  width: 100%;
+  max-width: 360px;
+  display: grid;
+  gap: 10px;
+  padding: 24px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+
+.cartao-login h1 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+.cartao-login .erro {
+  margin: 0;
+}
+
+.texto-apoio {
+  margin: 0 0 10px;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.privacidade {
+  margin: 4px 0 0;
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+}
+
+.botao-google {
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+a.botao-secundario {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.pagina-estreita {
+  max-width: 640px;
+}
+
+.formulario {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.formulario label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.formulario input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: var(--fundo);
+  color: var(--texto);
+  font: inherit;
+}
+
+.formulario .erro {
+  margin: 0;
+}
+
+.sucesso {
+  margin: 0;
+  color: var(--confirmado);
+  font-size: 0.9rem;
+}
+
+.botao-perigo {
+  margin-top: 12px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--erro);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--erro);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.acoes-topo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (min-width: 720px) {
+  .datas {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .botao {
+    grid-column: auto;
+    padding: 0 22px;
+  }
+
+  .cartoes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Relatório em PDF: segue o tema da tela, sem os controles. */
+@media print {
+  /* Sem isso, o navegador descarta os fundos e o tema noturno sai branco. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Margem zero para o fundo cobrir a folha inteira; o espaço vem do padding. */
+  @page {
+    margin: 0;
+  }
+
+  .periodo,
+  .botao-secundario,
+  .erro {
+    display: none !important;
+  }
+
+  /* zoom reduz tudo para cerca de 86%, como a escala ajustada à mão na impressão. */
+  .pagina {
+    max-width: none;
+    padding: 14mm;
+    zoom: 0.86;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* As seções podem continuar na página seguinte, repetindo borda e espaçamento. */
+  .bloco {
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .titulo-secao {
+    break-after: avoid;
+  }
+
+  .descricao {
+    color: var(--texto);
+    font-weight: 600;
+  }
+
+  .cartoes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* O top 5 é curto: fica inteiro em uma página em vez de dividido. */
+  .produto,
+  .cartao,
+  .bloco-produtos,
+  tr {
+    break-inside: avoid;
+  }
+}

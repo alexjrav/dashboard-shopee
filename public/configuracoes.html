@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Configurações | Painel do afiliado</title>
+    <link rel="stylesheet" href="estilo.css" />
+    <script>
+      // Aplica o tema salvo antes de desenhar a página, para não piscar.
+      try {
+        const tema = localStorage.getItem('tema');
+        if (tema === 'claro' || tema === 'escuro') document.documentElement.dataset.tema = tema;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <main class="pagina pagina-estreita">
+      <header class="topo">
+        <div>
+          <p id="nome-usuario" class="marca">&nbsp;</p>
+          <h1>Configurações</h1>
+        </div>
+        <div class="acoes-topo">
+          <a href="/" id="voltar" class="botao-secundario" hidden>Voltar ao painel</a>
+          <button type="button" id="sair" class="botao-secundario">Sair</button>
+        </div>
+      </header>
+
+      <section class="bloco" aria-labelledby="titulo-negocio">
+        <h2 id="titulo-negocio" class="titulo-secao">Nome do negócio</h2>
+        <p class="texto-apoio">
+          Opcional. Aparece abaixo do seu nome no painel e nos relatórios em PDF. A Shopee não informa esse nome,
+          por isso ele é preenchido aqui.
+        </p>
+        <form id="form-negocio" class="formulario">
+          <label>
+            Nome do negócio
+            <input type="text" id="nome-negocio" name="nome" maxlength="80" autocomplete="organization" />
+          </label>
+          <p id="erro-negocio" class="erro" role="alert" hidden></p>
+          <p id="sucesso-negocio" class="sucesso" role="status" hidden></p>
+          <button type="submit" id="salvar-negocio" class="botao">Salvar nome</button>
+        </form>
+      </section>
+
+      <section class="bloco" aria-labelledby="titulo-credenciais">
+        <h2 id="titulo-credenciais" class="titulo-secao">Credenciais da API da Shopee</h2>
+        <p id="situacao" class="texto-apoio"></p>
+        <p class="texto-apoio">
+          No portal de afiliados da Shopee, abra <strong>Abrir API</strong> e copie o AppID e o Secret. O Secret é
+          guardado criptografado e nunca é exibido de novo.
+        </p>
+        <form id="form-credenciais" class="formulario">
+          <label>
+            AppID
+            <input type="text" id="app-id" name="appId" autocomplete="off" inputmode="numeric" required />
+          </label>
+          <label>
+            Secret
+            <input type="password" id="secret" name="secret" autocomplete="off" required />
+          </label>
+          <p id="erro" class="erro" role="alert" hidden></p>
+          <p id="sucesso" class="sucesso" role="status" hidden></p>
+          <button type="submit" id="salvar" class="botao">Validar e salvar</button>
+        </form>
+        <button type="button" id="remover-credenciais" class="botao-perigo" hidden>Remover credenciais</button>
+      </section>
+
+      <section class="bloco" aria-labelledby="titulo-conta">
+        <h2 id="titulo-conta" class="titulo-secao">Sua conta</h2>
+        <p id="email-usuario" class="texto-apoio"></p>
+        <p class="texto-apoio">Excluir a conta apaga seu cadastro e as credenciais da Shopee guardadas aqui.</p>
+        <button type="button" id="excluir-conta" class="botao-perigo">Excluir minha conta</button>
+      </section>
+    </main>
+    <script src="configuracoes.js" type="module"></script>
+  </body>
+</html>

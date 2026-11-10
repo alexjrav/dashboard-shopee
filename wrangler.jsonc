@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "painel-comissoes-shopee",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-10-01",
+  // Só o endereço principal: sem endereços de pré-visualização por versão.
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    // O Worker roda antes dos arquivos, para exigir login também nas páginas.
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "painel-comissoes",
+      // Troque pelo id mostrado em "npx wrangler d1 create painel-comissoes".
+      "database_id": "86b40c30-94f7-48f2-93d5-d5e5c2f67630",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+  // Segredos (não ficam neste arquivo): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SEGREDO_SESSAO e CHAVE_CRIPTOGRAFIA.
+  // Em produção: npx wrangler secret put NOME. No computador: arquivo .dev.vars.
+}

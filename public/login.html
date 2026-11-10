@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar | Painel do afiliado</title>
+    <link rel="stylesheet" href="estilo.css" />
+    <script>
+      // Aplica o tema salvo antes de desenhar a página, para não piscar.
+      try {
+        const tema = localStorage.getItem('tema');
+        if (tema === 'claro' || tema === 'escuro') document.documentElement.dataset.tema = tema;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <main class="pagina-login">
+      <div class="cartao-login">
+        <p class="marca">Painel do afiliado</p>
+        <h1>Comissões da Shopee</h1>
+        <p class="texto-apoio">Acompanhe vendas, comissões e produtos mais vendidos da sua conta de afiliado.</p>
+        <p class="texto-apoio">Acesso somente para contas liberadas.</p>
+        <p id="erro" class="erro" role="alert" hidden></p>
+        <a href="/auth/google" class="botao botao-google">Entrar com o Google</a>
+        <p class="privacidade">
+          Guardamos só seu nome, e-mail e as credenciais da API da Shopee (o Secret fica criptografado), para mostrar
+          seus relatórios. Você pode excluir sua conta a qualquer momento nas Configurações.
+        </p>
+      </div>
+    </main>
+    <script src="login.js" type="module"></script>
+  </body>
+</html>

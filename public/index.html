@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comissões | Painel do afiliado</title>
+    <link rel="stylesheet" href="estilo.css" />
+    <script>
+      // Aplica o tema salvo antes de desenhar a página, para não piscar.
+      try {
+        const tema = localStorage.getItem('tema');
+        if (tema === 'claro' || tema === 'escuro') document.documentElement.dataset.tema = tema;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <main class="pagina">
+      <header class="topo">
+        <div>
+          <p id="nome-usuario" class="marca">&nbsp;</p>
+          <p id="nome-negocio" class="negocio" hidden></p>
+          <h1>Comissões da Shopee</h1>
+        </div>
+        <div class="acoes-topo">
+          <button type="button" id="alternar-tema" class="botao-secundario" aria-pressed="false">Modo noturno</button>
+          <a href="/configuracoes" class="botao-secundario">Configurações</a>
+          <button type="button" id="sair" class="botao-secundario">Sair</button>
+        </div>
+      </header>
+
+      <section class="periodo" aria-labelledby="titulo-periodo">
+        <h2 id="titulo-periodo" class="titulo-secao">Período</h2>
+        <div class="atalhos" role="group" aria-label="Atalhos de período">
+          <button type="button" class="atalho" data-atalho="hoje">Hoje</button>
+          <button type="button" class="atalho" data-atalho="ontem">Ontem</button>
+          <button type="button" class="atalho" data-atalho="7dias">Últimos 7 dias</button>
+          <button type="button" class="atalho" data-atalho="mes">Este mês</button>
+          <button type="button" class="atalho" data-atalho="mesPassado">Mês passado</button>
+          <button type="button" class="atalho" data-atalho="personalizado">Personalizado</button>
+        </div>
+        <form id="form-periodo" class="datas" hidden>
+          <label>
+            De
+            <input type="date" id="inicio" name="inicio" required />
+          </label>
+          <label>
+            Até
+            <input type="date" id="fim" name="fim" required />
+          </label>
+          <button type="submit" id="consultar" class="botao">Consultar</button>
+        </form>
+      </section>
+
+      <p id="erro" class="erro" role="alert" hidden></p>
+
+      <section id="resultado" aria-live="polite" hidden>
+        <div class="cabecalho-resultado">
+          <p id="descricao-periodo" class="descricao"></p>
+          <button type="button" id="gerar-pdf" class="botao-secundario">Gerar PDF</button>
+        </div>
+
+        <div class="cartoes">
+          <article class="cartao destaque">
+            <h3>Comissão prevista</h3>
+            <p id="comissao-prevista" class="valor"></p>
+            <p class="detalhe">Pode mudar até a confirmação</p>
+          </article>
+          <article class="cartao confirmado">
+            <h3>Comissão confirmada</h3>
+            <p id="comissao-confirmada" class="valor"></p>
+            <p class="detalhe">Pedidos concluídos</p>
+          </article>
+          <article class="cartao">
+            <h3>Pedidos</h3>
+            <p id="pedidos-validos" class="valor"></p>
+            <p class="detalhe">Sem os cancelados</p>
+          </article>
+          <article class="cartao">
+            <h3>Itens vendidos</h3>
+            <p id="itens-vendidos" class="valor"></p>
+            <p class="detalhe">Soma das quantidades</p>
+          </article>
+          <article class="cartao">
+            <h3>Valor dos pedidos</h3>
+            <p id="valor-pedidos" class="valor"></p>
+            <p class="detalhe">Valor pago pelos compradores</p>
+          </article>
+          <article class="cartao">
+            <h3>Cancelados</h3>
+            <p id="pedidos-cancelados" class="valor"></p>
+            <p class="detalhe">Não geram comissão</p>
+          </article>
+        </div>
+
+        <section class="bloco" aria-labelledby="titulo-status">
+          <h2 id="titulo-status" class="titulo-secao">Por status</h2>
+          <div class="tabela-rolavel">
+            <table>
+              <thead>
+                <tr><th scope="col">Status</th><th scope="col" class="num">Pedidos</th><th scope="col" class="num">Comissão</th></tr>
+              </thead>
+              <tbody id="tabela-status"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="bloco" aria-labelledby="titulo-dias">
+          <h2 id="titulo-dias" class="titulo-secao">Por dia</h2>
+          <div class="tabela-rolavel">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Dia</th>
+                  <th scope="col" class="num">Pedidos</th>
+                  <th scope="col" class="num">Comissão prevista</th>
+                  <th scope="col" class="num">Comissão confirmada</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-dias"></tbody>
+            </table>
+          </div>
+          <p id="sem-vendas" class="vazio" hidden>Nenhuma venda neste período.</p>
+        </section>
+
+        <section class="bloco bloco-produtos" aria-labelledby="titulo-produtos">
+          <h2 id="titulo-produtos" class="titulo-secao">Top 5 produtos</h2>
+          <ol id="lista-produtos" class="produtos"></ol>
+          <p id="sem-produtos" class="vazio" hidden>Sem dados de produtos neste período.</p>
+        </section>
+
+        <p id="atualizado-em" class="rodape"></p>
+      </section>
+    </main>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

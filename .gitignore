@@ -1,0 +1,9 @@
+.env
+.dev.vars
+resposta.json
+node_modules/
+.wrangler/
+# Cópias do banco exportadas com "wrangler d1 export" (têm dados pessoais)
+copia*.sql
+backup*.sql
+*.log

@@ -1,0 +1,20 @@
+# Copie para .dev.vars para rodar com "npm run dev". Em produção, cadastre cada um com
+# "npx wrangler secret put NOME". Nunca envie o .dev.vars para o Git ou por mensagem.
+
+# Credenciais do OAuth do Google Cloud (tipo "Aplicativo da Web").
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Textos aleatórios. Gere cada um com:
+# node -e "console.log(crypto.randomBytes(32).toString('base64'))"
+SEGREDO_SESSAO=
+# Chave que criptografa o Secret da Shopee no banco. Se for perdida, as credenciais salvas
+# não podem mais ser lidas e cada pessoa precisa cadastrá-las de novo.
+CHAVE_CRIPTOGRAFIA=
+
+# E-mails que podem criar conta e entrar, separados por vírgula. Sem esta lista, ninguém entra.
+# Para liberar mais alguém em produção: npx wrangler secret put EMAILS_PERMITIDOS (informe a lista inteira).
+EMAILS_PERMITIDOS=
+
+# Só no computador: libera /auth/dev para entrar sem conta Google. Nunca use em produção.
+MODO_DESENVOLVIMENTO=1
