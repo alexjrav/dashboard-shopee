@@ -39,7 +39,7 @@ Navegador  ──►  Cloudflare Worker (src/worker.ts)  ──►  API de afili
 | Cadastro e validação das credenciais da Shopee | Pronto e publicado |
 | Painel, PDF, modo noturno, atalhos de período | Pronto e publicado |
 | Nome do negócio (campo nas Configurações) | Pronto e publicado |
-| Gastos com anúncios e cálculo do ROI | Pronto no código e testado (História 2); **falta publicar** com `npm run deploy` |
+| Gastos com anúncios e cálculo do ROI | Pronto e publicado em 10/11/2026 (História 2); falta conferir com uma conta logada e dados reais |
 | Cliques | **Não disponível:** a API da Shopee não informa cliques (seção 4.4) |
 
 ---
@@ -346,7 +346,7 @@ A rotina é: `npm test`, `git add` dos arquivos alterados, `git commit -m "tipo:
 
 ## 12. Pendências do projeto
 
-1. **Publicar gastos e ROI em produção:** `npm run deploy` aplica a migração `0003` no banco real e envia a nova tela.
+1. **Conferir gastos e ROI em produção** com uma conta logada: registrar e excluir um gasto de teste e ver o ROI do período. Publicado em 10/11/2026, com a migração `0003` aplicada no banco real.
 2. **Validação com a Isabely** (13 a 15/11/2026): teste do protótipo (`docs/prototipo/`), medir o tempo antes e depois, conferir os totais com o painel da Shopee e obter o termo de aceite.
 3. **Confirmar com a Isabely** a fórmula de ROI que ela usa e se há outros custos além dos anúncios.
 4. **Planejados, ainda não feitos:** cabeçalho Content-Security-Policy, limite de tentativas nas rotas de login e de credenciais, migração da tela para Angular.
