@@ -1,3 +1,5 @@
+import { ativarMascaraDeValor } from './valor.js';
+
 const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const numero = new Intl.NumberFormat('pt-BR');
 const formatoDia = new Intl.DateTimeFormat('en-CA', {
@@ -496,6 +498,7 @@ elementos.formGasto.addEventListener('submit', (evento) => {
   evento.preventDefault();
   salvarGasto();
 });
+ativarMascaraDeValor(elementos.gastoValor);
 elementos.gastoDescricao.addEventListener('input', () => {
   elementos.contadorDescricao.textContent = `${elementos.gastoDescricao.value.length}/80`;
 });

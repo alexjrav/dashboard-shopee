@@ -159,8 +159,8 @@
           </label>
           <label>
             Valor gasto (R$)
-            <span class="ajuda">Ex.: 25,50</span>
-            <input type="text" id="gasto-valor" name="valor" inputmode="decimal" autocomplete="off" required aria-describedby="erro-gasto-valor" />
+            <span class="ajuda" id="ajuda-gasto-valor">Digite só os números: a vírgula aparece sozinha (2550 vira 25,50).</span>
+            <input type="text" id="gasto-valor" name="valor" inputmode="numeric" placeholder="0,00" autocomplete="off" required aria-describedby="ajuda-gasto-valor erro-gasto-valor" />
             <span id="erro-gasto-valor" class="erro-campo" role="alert" hidden></span>
           </label>
           <label>
