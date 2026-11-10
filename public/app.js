@@ -33,7 +33,37 @@ const elementos = {
   sair: document.getElementById('sair'),
   nomeUsuario: document.getElementById('nome-usuario'),
   nomeNegocio: document.getElementById('nome-negocio'),
+  cartaoRoi: document.getElementById('cartao-roi'),
+  roiConfirmado: document.getElementById('roi-confirmado'),
+  seloRoi: document.getElementById('selo-roi'),
+  roiEstimado: document.getElementById('roi-estimado'),
+  gastoAnuncios: document.getElementById('gasto-anuncios'),
+  quantidadeGastos: document.getElementById('quantidade-gastos'),
+  formGasto: document.getElementById('form-gasto'),
+  gastoData: document.getElementById('gasto-data'),
+  gastoValor: document.getElementById('gasto-valor'),
+  gastoDescricao: document.getElementById('gasto-descricao'),
+  contadorDescricao: document.getElementById('contador-descricao'),
+  salvarGasto: document.getElementById('salvar-gasto'),
+  gastoSalvo: document.getElementById('gasto-salvo'),
+  listaGastos: document.getElementById('lista-gastos'),
+  semGastos: document.getElementById('sem-gastos'),
+  totalGastos: document.getElementById('total-gastos'),
+  confirmarExclusao: document.getElementById('confirmar-exclusao'),
+  textoExclusao: document.getElementById('texto-exclusao'),
+  cancelarExclusao: document.getElementById('cancelar-exclusao'),
+  botaoExcluir: document.getElementById('confirmar-exclusao-botao'),
+  irParaGastos: document.getElementById('ir-para-gastos'),
 };
+
+const errosDoGasto = {
+  data: document.getElementById('erro-gasto-data'),
+  valor: document.getElementById('erro-gasto-valor'),
+  descricao: document.getElementById('erro-gasto-descricao'),
+};
+const camposDoGasto = { data: elementos.gastoData, valor: elementos.gastoValor, descricao: elementos.gastoDescricao };
+const percentual = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+let gastoParaExcluir = null;
 
 const tituloOriginal = document.title;
 let periodoExibido = null;
@@ -135,8 +165,32 @@ function mostrarErro(mensagem) {
   elementos.erro.hidden = !mensagem;
 }
 
+// O ROI sai sempre com sinal, número e palavra, para não depender só da cor.
+function textoDoRoi(roi) {
+  if (roi === null || roi === undefined) return '—';
+  const sinal = roi > 0 ? '+' : roi < 0 ? '−' : '';
+  return `${sinal}${percentual.format(Math.abs(roi) * 100)}%`;
+}
+
+function mostrarRoi(dados) {
+  const semGasto = dados.roiConfirmado === null;
+  const lucro = !semGasto && dados.roiConfirmado >= 0;
+  elementos.cartaoRoi.className = `cartao roi ${semGasto ? '' : lucro ? 'lucro' : 'prejuizo'}`;
+  elementos.roiConfirmado.textContent = textoDoRoi(dados.roiConfirmado);
+  elementos.seloRoi.textContent = semGasto
+    ? 'Sem gasto registrado neste período. Registre um gasto para calcular o ROI.'
+    : lucro
+      ? '▲ Lucro: os anúncios renderam mais do que custaram'
+      : '▼ Prejuízo: os anúncios custaram mais do que renderam';
+  elementos.roiEstimado.textContent = textoDoRoi(dados.roiEstimado);
+  elementos.gastoAnuncios.textContent = moeda.format(dados.gastoAnuncios);
+  elementos.quantidadeGastos.textContent =
+    dados.quantidadeGastos === 1 ? '1 gasto registrado' : `${numero.format(dados.quantidadeGastos)} gastos registrados`;
+}
+
 function mostrarRelatorio(dados) {
   periodoExibido = { inicio: dados.inicio, fim: dados.fim };
+  mostrarRoi(dados);
   const mesmoDia = dados.inicio === dados.fim;
   elementos.descricao.textContent = mesmoDia
     ? `Resultados de ${formatarDia(dados.inicio)}`
@@ -167,6 +221,7 @@ function mostrarRelatorio(dados) {
           [numero.format(item.pedidos), 'num'],
           [moeda.format(item.comissao), 'num'],
           [moeda.format(item.comissaoConfirmada), 'num confirmado'],
+          [moeda.format(item.gasto ?? 0), 'num'],
         ]),
       ),
   );
@@ -196,6 +251,8 @@ async function consultar() {
   mostrarErro('');
   elementos.consultar.disabled = true;
   elementos.consultar.textContent = 'Consultando...';
+  // Os gastos vêm do nosso banco: aparecem mesmo se a Shopee estiver fora do ar.
+  carregarGastos(inicio, fim);
   try {
     const resposta = await fetch(`/api/relatorio?${new URLSearchParams({ inicio, fim })}`);
     // Sessão expirada: volta para a tela de login.
@@ -218,6 +275,152 @@ async function consultar() {
   } finally {
     elementos.consultar.disabled = false;
     elementos.consultar.textContent = 'Consultar';
+  }
+}
+
+// ---------- Gastos com anúncios ----------
+
+function itemDoGasto(gasto) {
+  const li = document.createElement('li');
+  const texto = document.createElement('div');
+  const dia = document.createElement('strong');
+  dia.textContent = formatarDia(gasto.data).slice(0, 5);
+  // textContent: a descrição digitada aparece como texto, nunca como código.
+  texto.append(dia, ` · ${gasto.descricao ?? 'Sem descrição'}`);
+
+  const valor = document.createElement('span');
+  valor.className = 'valor-gasto';
+  valor.textContent = moeda.format(gasto.valorCentavos / 100);
+
+  const acoes = document.createElement('div');
+  acoes.className = 'acoes-gasto';
+  const excluir = document.createElement('button');
+  excluir.type = 'button';
+  excluir.className = 'botao-perigo';
+  excluir.textContent = 'Excluir';
+  excluir.setAttribute('aria-label', `Excluir gasto de ${valor.textContent} de ${formatarDia(gasto.data)}`);
+  excluir.addEventListener('click', () => pedirExclusao(gasto, excluir));
+  acoes.append(excluir);
+
+  li.append(texto, valor, acoes);
+  return li;
+}
+
+async function carregarGastos(inicio, fim) {
+  try {
+    const resposta = await fetch(`/api/gastos?${new URLSearchParams({ inicio, fim })}`);
+    if (!resposta.ok) return;
+    const dados = await resposta.json();
+    elementos.listaGastos.replaceChildren(...dados.gastos.map(itemDoGasto));
+    elementos.semGastos.hidden = dados.gastos.length > 0;
+    elementos.totalGastos.textContent = moeda.format(dados.totalCentavos / 100);
+  } catch {
+    // Sem conexão: a mensagem geral do relatório já avisa.
+  }
+}
+
+function mostrarErroDoGasto(campo, mensagem) {
+  for (const [nome, elemento] of Object.entries(errosDoGasto)) {
+    const ativo = nome === campo && Boolean(mensagem);
+    elemento.textContent = ativo ? `⚠ ${mensagem}` : '';
+    elemento.hidden = !ativo;
+    camposDoGasto[nome].setAttribute('aria-invalid', String(ativo));
+  }
+}
+
+function dentroDoPeriodo(data) {
+  return Boolean(periodoExibido) && data >= periodoExibido.inicio && data <= periodoExibido.fim;
+}
+
+async function salvarGasto() {
+  mostrarErroDoGasto(null, '');
+  elementos.gastoSalvo.hidden = true;
+  elementos.salvarGasto.disabled = true;
+  elementos.salvarGasto.textContent = 'Salvando...';
+  try {
+    const resposta = await fetch('/api/gastos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: elementos.gastoData.value,
+        valor: elementos.gastoValor.value,
+        descricao: elementos.gastoDescricao.value,
+      }),
+    });
+    if (resposta.status === 401) {
+      window.location.replace('/login');
+      return;
+    }
+    const dados = await resposta.json();
+    if (!resposta.ok) {
+      const campo = dados.campo ?? 'valor';
+      mostrarErroDoGasto(campo, dados.erro ?? 'Não foi possível salvar o gasto.');
+      camposDoGasto[campo].focus();
+      return;
+    }
+    const { data } = dados.gasto;
+    elementos.gastoValor.value = '';
+    elementos.gastoDescricao.value = '';
+    elementos.contadorDescricao.textContent = `0/80`;
+    elementos.gastoSalvo.textContent = dentroDoPeriodo(data)
+      ? 'Gasto salvo. ROI atualizado.'
+      : `Gasto salvo em ${formatarDia(data)}, fora do período exibido. Escolha um período que inclua essa data para vê-lo.`;
+    elementos.gastoSalvo.hidden = false;
+    // Recalcula o ROI do período exibido com o gasto novo.
+    if (periodoExibido) {
+      elementos.inicio.value = periodoExibido.inicio;
+      elementos.fim.value = periodoExibido.fim;
+      consultar();
+    }
+  } catch {
+    mostrarErroDoGasto('valor', 'Sem conexão. Tente salvar de novo.');
+  } finally {
+    elementos.salvarGasto.disabled = false;
+    elementos.salvarGasto.textContent = 'Salvar gasto';
+  }
+}
+
+let botaoQueAbriu = null;
+
+function pedirExclusao(gasto, botao) {
+  gastoParaExcluir = gasto;
+  botaoQueAbriu = botao;
+  elementos.textoExclusao.textContent =
+    `Excluir o gasto de ${moeda.format(gasto.valorCentavos / 100)} de ${formatarDia(gasto.data)}? Esta ação não pode ser desfeita.`;
+  elementos.confirmarExclusao.hidden = false;
+  elementos.confirmarExclusao.scrollIntoView({ block: 'center' });
+  elementos.cancelarExclusao.focus();
+}
+
+function fecharExclusao() {
+  elementos.confirmarExclusao.hidden = true;
+  gastoParaExcluir = null;
+  botaoQueAbriu?.focus();
+}
+
+async function excluirGasto() {
+  if (!gastoParaExcluir) return;
+  const { id } = gastoParaExcluir;
+  elementos.botaoExcluir.disabled = true;
+  try {
+    const resposta = await fetch(`/api/gastos/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (resposta.status === 401) {
+      window.location.replace('/login');
+      return;
+    }
+    elementos.confirmarExclusao.hidden = true;
+    gastoParaExcluir = null;
+    elementos.gastoSalvo.textContent = resposta.ok ? 'Gasto excluído. ROI atualizado.' : 'Esse gasto já não existia.';
+    elementos.gastoSalvo.hidden = false;
+    if (periodoExibido) {
+      elementos.inicio.value = periodoExibido.inicio;
+      elementos.fim.value = periodoExibido.fim;
+      consultar();
+    }
+  } catch {
+    elementos.textoExclusao.textContent = 'Sem conexão. Tente excluir de novo.';
+  } finally {
+    elementos.botaoExcluir.disabled = false;
   }
 }
 
@@ -289,6 +492,21 @@ elementos.form.addEventListener('submit', (evento) => {
   consultar();
 });
 
+elementos.formGasto.addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  salvarGasto();
+});
+elementos.gastoDescricao.addEventListener('input', () => {
+  elementos.contadorDescricao.textContent = `${elementos.gastoDescricao.value.length}/80`;
+});
+elementos.cancelarExclusao.addEventListener('click', fecharExclusao);
+elementos.botaoExcluir.addEventListener('click', excluirGasto);
+elementos.irParaGastos.addEventListener('click', (evento) => {
+  evento.preventDefault();
+  document.getElementById('gastos').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  elementos.gastoValor.focus({ preventScroll: true });
+});
+
 elementos.alternarTema.addEventListener('click', alternarTema);
 elementos.gerarPdf.addEventListener('click', gerarPdf);
 elementos.sair.addEventListener('click', async () => {
@@ -324,5 +542,7 @@ async function iniciar() {
 
 elementos.inicio.max = hoje();
 elementos.fim.max = hoje();
+elementos.gastoData.value = hoje();
+elementos.gastoData.max = hoje();
 mostrarBotaoTema();
 iniciar().catch(() => mostrarErro('Sem conexão. Recarregue a página.'));
