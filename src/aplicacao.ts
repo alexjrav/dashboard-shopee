@@ -11,8 +11,9 @@ import {
   textoAleatorio,
 } from './autenticacao.ts';
 import { cifrar, decifrar } from './cifra.ts';
+import { ErroGasto, validarGasto } from './gastos.ts';
 import { desafioPkce, urlDeAutorizacao, type PerfilGoogle } from './google.ts';
-import { ErroPeriodo, intervaloDoPeriodo, resumir } from './relatorio.ts';
+import { diaEmBrasilia, ErroPeriodo, intervaloDoPeriodo, resumir } from './relatorio.ts';
 import type { Repositorio, Usuario } from './repositorio.ts';
 import type { FonteDeConversoes } from './shopee.ts';
 
@@ -29,6 +30,8 @@ export type Ambiente = {
   servirArquivo: (requisicao: Request) => Promise<Response>;
   // Só no computador: libera /auth/dev para testar sem conta Google.
   modoDesenvolvimento?: boolean;
+  // Relógio substituível nos testes (milissegundos, como Date.now).
+  agora?: () => number;
 };
 
 type Configuracao = { segredo: string; chave: string; clientId: string; permitidos: Set<string> };
@@ -169,6 +172,49 @@ async function salvarCredenciais(requisicao: Request, usuario: Usuario, ambiente
   return semConteudo();
 }
 
+function hojeEmBrasilia(ambiente: Ambiente): string {
+  return diaEmBrasilia(Math.floor((ambiente.agora ?? Date.now)() / 1000));
+}
+
+async function listarGastos(url: URL, usuario: Usuario, ambiente: Ambiente) {
+  const inicio = url.searchParams.get('inicio') ?? '';
+  const fim = url.searchParams.get('fim') ?? '';
+  try {
+    intervaloDoPeriodo(inicio, fim);
+  } catch (erro) {
+    if (erro instanceof ErroPeriodo) return json(400, { erro: erro.message });
+    throw erro;
+  }
+  const gastos = await ambiente.repositorio.listarGastos(usuario.id, inicio, fim);
+  const totalCentavos = gastos.reduce((soma, gasto) => soma + gasto.valorCentavos, 0);
+  return json(200, { inicio, fim, gastos, totalCentavos });
+}
+
+async function registrarGasto(requisicao: Request, usuario: Usuario, ambiente: Ambiente) {
+  let corpo: unknown;
+  try {
+    corpo = await requisicao.json();
+  } catch {
+    return json(400, { erro: 'Envie a data e o valor do gasto.' });
+  }
+  try {
+    const gasto = await ambiente.repositorio.salvarGasto(usuario.id, validarGasto(corpo, hojeEmBrasilia(ambiente)));
+    return json(201, { gasto });
+  } catch (erro) {
+    if (erro instanceof ErroGasto) return json(400, { erro: erro.message, campo: erro.campo });
+    throw erro;
+  }
+}
+
+async function excluirGasto(id: string, usuario: Usuario, ambiente: Ambiente) {
+  const numero = Number(id);
+  // Só apaga se o gasto for desta usuária; o de outra pessoa responde como inexistente.
+  if (!Number.isSafeInteger(numero) || numero <= 0 || !(await ambiente.repositorio.excluirGasto(usuario.id, numero))) {
+    return json(404, { erro: 'Gasto não encontrado.' });
+  }
+  return semConteudo();
+}
+
 export async function tratarRequisicao(requisicao: Request, ambiente: Ambiente): Promise<Response> {
   const url = new URL(requisicao.url);
   const seguro = url.protocol === 'https:';
@@ -244,6 +290,16 @@ export async function tratarRequisicao(requisicao: Request, ambiente: Ambiente):
   if (url.pathname === '/api/credenciais' && metodo === 'DELETE') {
     await ambiente.repositorio.excluirCredenciais(usuario.id);
     return semConteudo();
+  }
+  if (url.pathname === '/api/gastos' && metodo === 'GET') {
+    return listarGastos(url, usuario, ambiente);
+  }
+  if (url.pathname === '/api/gastos' && metodo === 'POST') {
+    return registrarGasto(requisicao, usuario, ambiente);
+  }
+  const rotaGasto = /^\/api\/gastos\/([^/]+)$/.exec(url.pathname);
+  if (rotaGasto && metodo === 'DELETE') {
+    return excluirGasto(rotaGasto[1], usuario, ambiente);
   }
   if (url.pathname === '/api/conta' && metodo === 'DELETE') {
     await ambiente.repositorio.excluirUsuario(usuario.id);
