@@ -16,7 +16,7 @@ Painel web para afiliadas da Shopee acompanharem vendas, comissões, gastos com 
 1. A pessoa entra com a conta Google (se o e-mail estiver na lista de aprovados).
 2. Na primeira vez, cadastra o **AppID** e o **Secret** da API de afiliados da Shopee. O sistema testa as credenciais antes de salvar.
 3. O painel consulta a Shopee e mostra, para o período escolhido: comissão prevista, comissão confirmada, pedidos, itens vendidos, valor dos pedidos, cancelados, totais por status, totais por dia e o Top 5 de produtos.
-4. Na seção **Gastos com anúncios**, a pessoa registra quanto gastou em cada dia (de qualquer canal). O painel soma os gastos do período e mostra o **ROI confirmado** e o **ROI estimado**, com a palavra Lucro ou Prejuízo.
+4. Pelo botão **+ Registrar gasto com anúncios**, a pessoa abre a tela de gastos (`/gastos`) e registra quanto gastou em cada dia (de qualquer canal). O valor é digitado só com números e a vírgula aparece sozinha (2550 vira 25,50). De volta ao painel, no mesmo período, aparecem o **ROI confirmado** e o **ROI estimado**, com a palavra Lucro ou Prejuízo.
 5. O botão **Gerar PDF** abre a impressão do navegador com o relatório do período, no tema (normal ou noturno) que estiver na tela.
 
 ### Como as peças se encaixam
@@ -58,9 +58,9 @@ teste-api-shopee/
 │   ├── shopee.ts          Cliente da API da Shopee (assinatura, consulta, paginação)
 │   ├── gastos.ts          Validação dos gastos com anúncios (data, valor, descrição)
 │   └── relatorio.ts       Cálculos: totais, status, dias, produtos, ROI, fuso de Brasília
-├── public/                Telas: login, painel (index), configurações, estilo, scripts
+├── public/                Telas: login, painel (index), gastos, configurações, estilo, scripts
 ├── migrations/            Criação e alteração das tabelas do banco
-├── tests/                 Testes automáticos (54)
+├── tests/                 Testes automáticos (57)
 ├── docs/                  Guia em PDF e protótipo das telas (docs/prototipo)
 ├── scripts/descobrir_campos.ts   Lista o que a API da Shopee oferece (usa o .env)
 ├── wrangler.jsonc         Configuração do Worker, do banco e dos arquivos da tela
@@ -80,7 +80,7 @@ teste-api-shopee/
 ```bash
 npm install
 npm run dev        # aplica as migrações no banco local e abre em http://localhost:8787
-npm test           # roda os 54 testes automáticos
+npm test           # roda os 57 testes automáticos
 ```
 
 - O `.dev.vars` guarda os segredos locais. Copie o `.dev.vars.example` e preencha (seção 7).
@@ -128,7 +128,7 @@ Rotas de entrada: `/auth/google`, `/auth/google/callback`. Alterações enviadas
 Campo opcional em **Configurações**, até 80 caracteres. Aparece logo abaixo de "Olá, Nome" no painel e também no PDF. Fica na coluna `nome_negocio` da tabela `usuarios` (migração `0002`). Um novo login do Google não apaga esse nome.
 
 ### 4.6 Gastos com anúncios e ROI
-- **Registro:** data (não pode ser futura), valor em reais e descrição opcional de até 80 caracteres. O valor aceita `25,50`, `25.50`, `25` e `R$ 1.234,56`, e fica guardado em centavos. Erros voltam com o campo e a correção, por exemplo "Informe um valor maior que zero, como 25,50."
+- **Registro:** na tela `/gastos`, que recebe o período do painel pelo endereço (`/gastos?inicio=…&fim=…`) e devolve para o painel no mesmo período. Data (não pode ser futura), valor em reais e descrição opcional de até 80 caracteres. O campo de valor põe a vírgula sozinha (`public/valor.js`). O servidor aceita `25,50`, `25.50`, `25` e `R$ 1.234,56`, e fica guardado em centavos. Erros voltam com o campo e a correção, por exemplo "Informe um valor maior que zero, como 25,50."
 - **Fórmula:** `ROI = (comissão − gasto) ÷ gasto`, calculada em centavos.
   - **ROI confirmado:** usa só a comissão de pedidos concluídos.
   - **ROI estimado:** usa a comissão prevista, que inclui pedidos pendentes. Aparece com a etiqueta "estimativa".
@@ -150,7 +150,7 @@ Excluir a conta (Configurações) apaga o usuário, as credenciais e os gastos.
 |---|---|---|
 | `GET /login`, `/login.js`, `/estilo.css` | Qualquer pessoa | Tela de login |
 | `GET /auth/google`, `/auth/google/callback` | Qualquer pessoa | Fluxo do login Google |
-| `GET /` e `/configuracoes` | Logada | Páginas |
+| `GET /`, `/gastos` e `/configuracoes` | Logada | Páginas |
 | `GET /api/eu` | Logada | Nome, e-mail, nome do negócio e credenciais (só AppID) |
 | `GET /api/relatorio?inicio=AAAA-MM-DD&fim=AAAA-MM-DD` | Logada | Relatório do período, com gasto e ROI |
 | `GET /api/gastos?inicio=AAAA-MM-DD&fim=AAAA-MM-DD` | Logada | Gastos da usuária no período e total |
