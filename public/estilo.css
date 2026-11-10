@@ -77,9 +77,11 @@ body {
   margin-bottom: 20px;
 }
 
+/* Área de toque mínima de 44 x 44 px em todos os controles (RNF04). */
 .botao-secundario {
   flex-shrink: 0;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 8px 14px;
   border: 1px solid var(--borda);
   border-radius: 10px;
@@ -147,6 +149,7 @@ h1 {
 }
 
 .atalho {
+  min-height: 44px;
   border: 1px solid var(--borda);
   background: transparent;
   color: var(--texto);
@@ -466,7 +469,8 @@ a.botao-secundario {
 
 .botao-perigo {
   margin-top: 12px;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 8px 14px;
   border: 1px solid var(--erro);
   border-radius: 10px;
