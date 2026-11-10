@@ -1,8 +1,9 @@
 # Painel de Comissões Shopee
 
-Painel web para afiliadas da Shopee acompanharem vendas, comissões, itens vendidos e produtos mais vendidos por período, com relatório em PDF. Projeto da disciplina de Projeto de Software, criado para a Home da Isa (parceira: Isabely).
+Painel web para afiliadas da Shopee acompanharem vendas, comissões, gastos com anúncios e **ROI** por período, com relatório em PDF. Projeto da disciplina de Projeto de Software, criado para a Home da Isa (parceira: Isabely).
 
 - **Endereço publicado:** https://painel-comissoes-shopee.painel-afiliado.workers.dev
+- **Protótipo de teste (dados fictícios):** https://prototipo-painel-afiliado.painel-afiliado.workers.dev (código em `docs/prototipo/`)
 - **Hospedagem:** Cloudflare Workers + banco Cloudflare D1 (plano gratuito)
 - **Login:** conta Google, somente para e-mails aprovados por você
 - **Dados de vendas:** API de afiliados da Shopee (Open API), consultada em tempo real
@@ -15,7 +16,8 @@ Painel web para afiliadas da Shopee acompanharem vendas, comissões, itens vendi
 1. A pessoa entra com a conta Google (se o e-mail estiver na lista de aprovados).
 2. Na primeira vez, cadastra o **AppID** e o **Secret** da API de afiliados da Shopee. O sistema testa as credenciais antes de salvar.
 3. O painel consulta a Shopee e mostra, para o período escolhido: comissão prevista, comissão confirmada, pedidos, itens vendidos, valor dos pedidos, cancelados, totais por status, totais por dia e o Top 5 de produtos.
-4. O botão **Gerar PDF** abre a impressão do navegador com o relatório do período, no tema (normal ou noturno) que estiver na tela.
+4. Na seção **Gastos com anúncios**, a pessoa registra quanto gastou em cada dia (de qualquer canal). O painel soma os gastos do período e mostra o **ROI confirmado** e o **ROI estimado**, com a palavra Lucro ou Prejuízo.
+5. O botão **Gerar PDF** abre a impressão do navegador com o relatório do período, no tema (normal ou noturno) que estiver na tela.
 
 ### Como as peças se encaixam
 
@@ -37,7 +39,7 @@ Navegador  ──►  Cloudflare Worker (src/worker.ts)  ──►  API de afili
 | Cadastro e validação das credenciais da Shopee | Pronto e publicado |
 | Painel, PDF, modo noturno, atalhos de período | Pronto e publicado |
 | Nome do negócio (campo nas Configurações) | Pronto e publicado |
-| Gastos com anúncios e cálculo do ROI | **Ainda não feito** (História 2 do projeto) |
+| Gastos com anúncios e cálculo do ROI | Pronto no código e testado (História 2); **falta publicar** com `npm run deploy` |
 | Cliques | **Não disponível:** a API da Shopee não informa cliques (seção 4.4) |
 
 ---
@@ -54,10 +56,12 @@ teste-api-shopee/
 │   ├── cifra.ts           Criptografia do Secret da Shopee (AES-GCM)
 │   ├── repositorio.ts     Acesso ao banco D1 (e versão em memória para testes)
 │   ├── shopee.ts          Cliente da API da Shopee (assinatura, consulta, paginação)
-│   └── relatorio.ts       Cálculos: totais, status, dias, produtos, fuso de Brasília
+│   ├── gastos.ts          Validação dos gastos com anúncios (data, valor, descrição)
+│   └── relatorio.ts       Cálculos: totais, status, dias, produtos, ROI, fuso de Brasília
 ├── public/                Telas: login, painel (index), configurações, estilo, scripts
 ├── migrations/            Criação e alteração das tabelas do banco
-├── tests/                 Testes automáticos (40)
+├── tests/                 Testes automáticos (54)
+├── docs/                  Guia em PDF e protótipo das telas (docs/prototipo)
 ├── scripts/descobrir_campos.ts   Lista o que a API da Shopee oferece (usa o .env)
 ├── wrangler.jsonc         Configuração do Worker, do banco e dos arquivos da tela
 ├── .dev.vars              Segredos para rodar no seu computador (NÃO vai para o Git)
@@ -76,7 +80,7 @@ teste-api-shopee/
 ```bash
 npm install
 npm run dev        # aplica as migrações no banco local e abre em http://localhost:8787
-npm test           # roda os 40 testes automáticos
+npm test           # roda os 54 testes automáticos
 ```
 
 - O `.dev.vars` guarda os segredos locais. Copie o `.dev.vars.example` e preencha (seção 7).
@@ -123,22 +127,35 @@ Rotas de entrada: `/auth/google`, `/auth/google/callback`. Alterações enviadas
 ### 4.5 Nome do negócio
 Campo opcional em **Configurações**, até 80 caracteres. Aparece logo abaixo de "Olá, Nome" no painel e também no PDF. Fica na coluna `nome_negocio` da tabela `usuarios` (migração `0002`). Um novo login do Google não apaga esse nome.
 
-### 4.6 Banco de dados (D1)
+### 4.6 Gastos com anúncios e ROI
+- **Registro:** data (não pode ser futura), valor em reais e descrição opcional de até 80 caracteres. O valor aceita `25,50`, `25.50`, `25` e `R$ 1.234,56`, e fica guardado em centavos. Erros voltam com o campo e a correção, por exemplo "Informe um valor maior que zero, como 25,50."
+- **Fórmula:** `ROI = (comissão − gasto) ÷ gasto`, calculada em centavos.
+  - **ROI confirmado:** usa só a comissão de pedidos concluídos.
+  - **ROI estimado:** usa a comissão prevista, que inclui pedidos pendentes. Aparece com a etiqueta "estimativa".
+  - Sem gasto no período, o ROI fica vazio ("Sem gasto registrado neste período").
+- **Na tela:** o ROI aparece com sinal, seta e a palavra **Lucro** ou **Prejuízo**, e não só pela cor. A tabela por dia ganha a coluna de gasto.
+- **Exclusão:** cada gasto tem "Excluir", sempre com confirmação. Uma afiliada só vê e exclui os próprios gastos.
+
+### 4.7 Banco de dados (D1)
 | Tabela | Campos |
 |---|---|
 | `usuarios` | `id` (identificador do Google), `email`, `nome`, `criado_em`, `nome_negocio` |
 | `credenciais_shopee` | `usuario_id`, `app_id`, `secret_cifrado`, `atualizado_em` |
+| `gastos_anuncios` | `id`, `usuario_id`, `data` (AAAA-MM-DD), `valor_centavos`, `descricao`, `criado_em` (migração `0003`) |
 
-Excluir a conta (Configurações) apaga o usuário e as credenciais.
+Excluir a conta (Configurações) apaga o usuário, as credenciais e os gastos.
 
-### 4.7 Rotas do servidor
+### 4.8 Rotas do servidor
 | Rota | Quem acessa | Função |
 |---|---|---|
 | `GET /login`, `/login.js`, `/estilo.css` | Qualquer pessoa | Tela de login |
 | `GET /auth/google`, `/auth/google/callback` | Qualquer pessoa | Fluxo do login Google |
 | `GET /` e `/configuracoes` | Logada | Páginas |
 | `GET /api/eu` | Logada | Nome, e-mail, nome do negócio e credenciais (só AppID) |
-| `GET /api/relatorio?inicio=AAAA-MM-DD&fim=AAAA-MM-DD` | Logada | Relatório do período |
+| `GET /api/relatorio?inicio=AAAA-MM-DD&fim=AAAA-MM-DD` | Logada | Relatório do período, com gasto e ROI |
+| `GET /api/gastos?inicio=AAAA-MM-DD&fim=AAAA-MM-DD` | Logada | Gastos da usuária no período e total |
+| `POST /api/gastos` | Logada | Valida e registra um gasto (`data`, `valor`, `descricao`) |
+| `DELETE /api/gastos/:id` | Logada | Exclui um gasto da própria usuária (de outra pessoa: 404) |
 | `POST /api/negocio` | Logada | Salva o nome do negócio |
 | `POST` / `DELETE /api/credenciais` | Logada | Valida e salva / remove credenciais da Shopee |
 | `DELETE /api/conta` | Logada | Exclui a conta e os dados |
@@ -282,21 +299,15 @@ Para apagar os dados de alguém, a própria pessoa usa **Configurações > Exclu
 
 ---
 
-## 9. GitHub (opcional)
+## 9. GitHub
 
-Não é necessário para o site funcionar. Serve para guardar o histórico e ter cópia de segurança.
-
-- A pasta **já é um repositório Git local** (branch `main`, primeiro commit feito), mas **ainda não foi enviada ao GitHub**.
+- Repositório **público**: https://github.com/alexjrav/dashboard-shopee (branch `main`). É público porque a disciplina avalia o código.
 - O `.gitignore` protege `.env`, `.dev.vars`, `resposta.json`, `.wrangler/`, `node_modules/` e cópias do banco (`copia*.sql`, `backup*.sql`).
-- Antes de cada envio, rode `git status` e confirme que **nenhum desses arquivos aparece**. Crie o repositório no GitHub como **privado**.
+- Antes de cada envio, rode `git status` e confirme que **nenhum desses arquivos aparece**. Como o repositório é público, qualquer segredo enviado fica exposto.
 - O identificador do banco no `wrangler.jsonc` não é segredo.
+- Mensagens de commit seguem o padrão semântico: `feat:` (função nova), `fix:` (correção), `test:` (testes), `docs:` (documentação).
 
-Para enviar a primeira vez (crie antes um repositório **vazio e privado** no GitHub, sem README):
-```bash
-git remote add origin https://github.com/SEU-USUARIO/NOME-DO-REPOSITORIO.git
-git push -u origin main
-```
-Depois, a rotina é: `git add -A`, `git commit -m "o que mudou"` e `git push`. Publicar no site continua sendo `npm run deploy`, que é independente do GitHub.
+A rotina é: `npm test`, `git add` dos arquivos alterados, `git commit -m "tipo: o que mudou"` e `git push`. Publicar no site continua sendo `npm run deploy`, que é independente do GitHub.
 - Publicação automática a cada envio ao GitHub é possível pelo recurso de integração Git da Cloudflare (Workers Builds), mas **não está configurada**: hoje a publicação é sempre manual.
 
 ---
@@ -335,8 +346,8 @@ Depois, a rotina é: `git add -A`, `git commit -m "o que mudou"` e `git push`. P
 
 ## 12. Pendências do projeto
 
-1. **Gastos com anúncios e ROI** (História 2): tabela de gastos, formulário e cálculo `(comissão − gasto) / gasto`.
-2. **Enviar o código ao GitHub** (seção 9), como cópia de segurança.
-3. **Atualizar os textos da disciplina:** persona (afiliadas, não só a Isabely), História 1 (login Google e cadastro das credenciais), plataforma (Cloudflare Workers + D1), itens fora do escopo e cronograma.
-4. **Validação com a Isabely** (13 a 15/11/2026): medir o tempo antes e depois, conferir os totais com o painel da Shopee e obter o termo de aceite.
-5. **Opcional:** domínio próprio, verificação do app no Google e repositório no GitHub.
+1. **Publicar gastos e ROI em produção:** `npm run deploy` aplica a migração `0003` no banco real e envia a nova tela.
+2. **Validação com a Isabely** (13 a 15/11/2026): teste do protótipo (`docs/prototipo/`), medir o tempo antes e depois, conferir os totais com o painel da Shopee e obter o termo de aceite.
+3. **Confirmar com a Isabely** a fórmula de ROI que ela usa e se há outros custos além dos anúncios.
+4. **Planejados, ainda não feitos:** cabeçalho Content-Security-Policy, limite de tentativas nas rotas de login e de credenciais, migração da tela para Angular.
+5. **Opcional:** domínio próprio, verificação do app no Google, edição de gasto (hoje: excluir e lançar de novo) e ROI por anúncio.

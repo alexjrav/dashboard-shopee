@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Protótipo | Painel do afiliado</title>
+<style>
+  /* Mesmas cores do sistema publicado (contraste mínimo medido: 4,69:1). */
+  :root {
+    --fundo: #f6f4f1; --superficie: #ffffff; --texto: #1f2933; --texto-suave: #5f6b76;
+    --borda: #e3dfd9; --destaque: #c2410c; --destaque-fundo: #fff1e8;
+    --confirmado: #0f766e; --confirmado-fundo: #e7f5f2; --erro: #b42318; --erro-fundo: #fef3f2;
+    --aviso: #8a4b00; --aviso-fundo: #fff6e0; --raio: 14px; color-scheme: light;
+  }
+  :root[data-tema="escuro"] {
+    --fundo: #161a1e; --superficie: #1f252b; --texto: #eef1f4; --texto-suave: #a3adb7;
+    --borda: #323a42; --destaque: #fb923c; --destaque-fundo: #2b211b;
+    --confirmado: #2dd4bf; --confirmado-fundo: #132b29; --erro: #fda29b; --erro-fundo: #3a1f1d;
+    --aviso: #fcd34d; --aviso-fundo: #33290f; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--fundo); color: var(--texto);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45; }
+  .faixa { margin: 0; padding: 6px 16px; background: var(--texto); color: var(--fundo);
+    font-size: .78rem; text-align: center; }
+  .pagina { max-width: 640px; margin: 0 auto; padding: 16px 16px 40px; }
+  :focus-visible { outline: 3px solid var(--destaque); outline-offset: 2px; }
+  h1 { margin: 2px 0 0; font-size: 1.45rem; }
+  h2 { margin: 0 0 10px; font-size: 1rem; }
+  .marca { margin: 0; color: var(--destaque); font-weight: 600; font-size: .9rem; }
+  .negocio { margin: 2px 0 0; font-weight: 600; }
+  .suave { color: var(--texto-suave); font-size: .88rem; margin: 0; }
+  .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+  .acoes-topo { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+  .bloco, .cartao { background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); }
+  .bloco { padding: 16px; margin-top: 14px; }
+  .botao, .botao-sec, .atalho, .botao-perigo {
+    min-height: 44px; min-width: 44px; padding: 10px 16px; border-radius: 10px; font: inherit;
+    font-size: .95rem; cursor: pointer; text-decoration: none; display: inline-flex;
+    align-items: center; justify-content: center; gap: 8px; }
+  .botao { border: 0; background: var(--destaque); color: #fff; font-weight: 600; width: 100%; }
+  :root[data-tema="escuro"] .botao { color: #1f1206; }
+  .botao-sec { border: 1px solid var(--borda); background: var(--superficie); color: var(--texto); }
+  .botao-perigo { border: 1px solid var(--erro); background: transparent; color: var(--erro); }
+  .largo { width: 100%; }
+  .atalhos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .atalho { border: 1px solid var(--borda); background: transparent; color: var(--texto); border-radius: 999px; }
+  .atalho[aria-pressed="true"] { background: var(--destaque-fundo); border: 2px solid var(--destaque);
+    color: var(--destaque); font-weight: 700; }
+  .datas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  input[type="date"] { min-width: 0; padding: 8px; }
+  label { display: grid; gap: 4px; font-size: .9rem; font-weight: 600; color: var(--texto); }
+  .ajuda { font-weight: 400; font-size: .82rem; color: var(--texto-suave); }
+  input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--texto-suave);
+    border-radius: 10px; background: var(--fundo); color: var(--texto); font: inherit; }
+  input[aria-invalid="true"] { border: 2px solid var(--erro); }
+  .acoes { display: grid; gap: 10px; margin-top: 14px; }
+  .alerta { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; padding: 12px 14px;
+    border-radius: 10px; border: 1px solid currentColor; font-size: .92rem; }
+  .alerta .icone { font-weight: 800; font-size: 1.05rem; line-height: 1.3; flex-shrink: 0; width: 22px;
+    height: 22px; border-radius: 50%; display: inline-grid; place-items: center; border: 2px solid currentColor; font-size: .8rem; }
+  .alerta p { margin: 0; }
+  .alerta-erro { background: var(--erro-fundo); color: var(--erro); }
+  .alerta-ok { background: var(--confirmado-fundo); color: var(--confirmado); }
+  .alerta-aviso { background: var(--aviso-fundo); color: var(--aviso); }
+  .erro-campo { display: flex; gap: 6px; margin: 2px 0 0; color: var(--erro); font-size: .85rem; font-weight: 600; }
+  .contador { justify-self: end; font-weight: 400; font-size: .8rem; color: var(--texto-suave); }
+  .lista { list-style: none; margin: 0; padding: 0; }
+  .lista li { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 12px; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--borda); }
+  .lista li:last-child { border-bottom: 0; }
+  .lista .valor { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lista .linha-acoes { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+  .total { display: flex; justify-content: space-between; margin-top: 10px; font-weight: 700; }
+  .dialogo { margin-top: 12px; padding: 16px; border: 2px solid var(--erro); border-radius: var(--raio); background: var(--superficie); }
+  .dialogo h3 { margin: 0 0 6px; font-size: 1rem; }
+  .dialogo .botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .cartoes { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .cartao { padding: 12px; }
+  .cartao h3 { margin: 0; font-size: .82rem; font-weight: 500; color: var(--texto-suave); }
+  .cartao .numero { margin: 4px 0 2px; font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cartao .detalhe { margin: 0; font-size: .78rem; color: var(--texto-suave); }
+  .cartao.roi { grid-column: 1 / -1; border-width: 2px; }
+  .cartao.lucro { border-color: var(--confirmado); background: var(--confirmado-fundo); }
+  .cartao.lucro .numero, .cartao.lucro .selo { color: var(--confirmado); }
+  .cartao.prejuizo { border-color: var(--erro); background: var(--erro-fundo); }
+  .cartao.prejuizo .numero, .cartao.prejuizo .selo { color: var(--erro); }
+  .cartao.roi .numero { font-size: 1.6rem; }
+  .selo { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: .95rem; }
+  .estimativa { display: inline-block; margin-left: 4px; padding: 1px 8px; border-radius: 999px;
+    border: 1px dashed var(--texto-suave); font-size: .75rem; color: var(--texto-suave); }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { padding: 8px 4px; border-bottom: 1px solid var(--borda); text-align: left; }
+  th { font-size: .78rem; color: var(--texto-suave); font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.num { white-space: nowrap; }
+  .login { min-height: 70vh; display: grid; place-items: center; }
+  .cartao-login { width: 100%; max-width: 360px; padding: 24px; display: grid; gap: 10px;
+    background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); }
+  .g { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #fff; color: #1f2933; font-weight: 800; font-size: .85rem; }
+  .carregando { display: flex; gap: 8px; align-items: center; margin-top: 12px; color: var(--texto-suave); font-size: .88rem; }
+  .giro { width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--borda); border-top-color: var(--destaque); }
+  .rodape { margin-top: 14px; color: var(--texto-suave); font-size: .82rem; }
+  .indice { display: grid; gap: 8px; }
+</style>
+</head>
+<body>
+<p class="faixa">Protótipo do Painel do Afiliado · dados fictícios</p>
+
+<!-- ======================= Índice (navegação do protótipo) ======================= -->
+<main class="pagina" data-tela="indice">
+  <h1>Protótipo: três telas principais</h1>
+  <p class="suave">Fluxo central: entrar, registrar gasto com anúncios e ver o ROI do período.</p>
+  <nav class="bloco indice" aria-label="Telas do protótipo">
+    <a class="botao-sec largo" href="#tela1-login">Tela 1a · Entrada (login)</a>
+    <a class="botao-sec largo" href="#tela1">Tela 1b · Início</a>
+    <a class="botao-sec largo" href="#tela2">Tela 2 · Registrar gasto</a>
+    <a class="botao-sec largo" href="#tela2-erro">Tela 2 · Erro de validação</a>
+    <a class="botao-sec largo" href="#tela2-excluir">Tela 2 · Confirmar exclusão</a>
+    <a class="botao-sec largo" href="#tela3">Tela 3 · Resultado com lucro</a>
+    <a class="botao-sec largo" href="#tela3-prejuizo">Tela 3 · Resultado com prejuízo</a>
+    <a class="botao-sec largo" href="#tela3-alertas">Tela 3 · Alertas</a>
+  </nav>
+</main>
+
+<!-- ======================= Tela 1a: login ======================= -->
+<main class="pagina login" data-tela="tela1-login" hidden>
+  <div class="cartao-login">
+    <p class="marca">Painel do Afiliado</p>
+    <h1>Comissões, gastos e ROI da Shopee</h1>
+    <p class="suave">Entre com a sua conta Google. Só contas liberadas têm acesso.</p>
+    <a class="botao" href="#tela1"><span class="g" aria-hidden="true">G</span> Entrar com o Google</a>
+    <div class="alerta alerta-erro" role="alert">
+      <span class="icone" aria-hidden="true">!</span>
+      <p><strong>Esta conta Google ainda não foi liberada.</strong> Peça a liberação ao responsável pelo sistema e tente de novo.</p>
+    </div>
+    <p class="suave" style="font-size:.78rem">O sistema não pede nem guarda senha: o login é feito pelo Google.</p>
+  </div>
+</main>
+
+<!-- ======================= Tela 1b: início ======================= -->
+<main class="pagina" data-tela="tela1" hidden>
+  <header class="topo">
+    <div>
+      <p class="marca">Olá, Ana</p>
+      <p class="negocio">Loja Exemplo Achadinhos</p>
+      <h1>Início</h1>
+      <p class="suave">Painel do Afiliado · comissões, gastos e ROI da Shopee</p>
+    </div>
+    <div class="acoes-topo">
+      <a class="botao-sec" href="#indice">Configurações</a>
+      <a class="botao-sec" href="#tela1-login">Sair</a>
+    </div>
+  </header>
+
+  <section class="bloco" aria-labelledby="t-periodo" style="margin-top:0">
+    <h2 id="t-periodo">Período</h2>
+    <div class="atalhos" role="group" aria-label="Atalhos de período">
+      <button type="button" class="atalho">Hoje</button>
+      <button type="button" class="atalho">Ontem</button>
+      <button type="button" class="atalho">7 dias</button>
+      <button type="button" class="atalho" aria-pressed="true">✓ Este mês</button>
+      <button type="button" class="atalho">Mês passado</button>
+    </div>
+    <div class="datas">
+      <label>Data inicial<input type="date" value="2026-11-01" /></label>
+      <label>Data final<input type="date" value="2026-11-10" /></label>
+    </div>
+    <p class="suave" style="margin-top:8px">Selecionado: Este mês, de 01/11 a 10/11/2026.</p>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-acoes">
+    <h2 id="t-acoes">O que você quer fazer?</h2>
+    <div class="acoes" style="margin-top:0">
+      <a class="botao" href="#tela2">+ Registrar gasto</a>
+      <a class="botao-sec largo" href="#tela3">Ver resultado do período</a>
+    </div>
+    <div class="carregando" role="status"><span class="giro" aria-hidden="true"></span> Carregando dados da Shopee...</div>
+  </section>
+
+  <div class="acoes">
+    <button type="button" class="botao-sec largo" aria-pressed="false">Modo noturno: desligado</button>
+  </div>
+</main>
+
+<!-- ======================= Tela 2: registrar gasto (+ estados) ======================= -->
+<main class="pagina" data-tela="tela2 tela2-erro tela2-excluir" hidden>
+  <header class="topo">
+    <div>
+      <p class="marca">Loja Exemplo Achadinhos</p>
+      <h1>Registrar gasto com anúncios</h1>
+      <p class="suave">Período: 01/11 a 10/11/2026</p>
+    </div>
+  </header>
+
+  <section class="bloco" aria-labelledby="t-form" style="margin-top:0">
+    <h2 id="t-form">Novo gasto</h2>
+    <form class="acoes" style="margin-top:0" onsubmit="return false">
+      <label>Data do gasto
+        <input type="date" value="2026-11-10" />
+      </label>
+      <label>Valor gasto (R$)
+        <span class="ajuda">Ex.: 25,50</span>
+        <input class="campo-valor" inputmode="decimal" value="25,50" aria-describedby="erro-valor" />
+        <span id="erro-valor" class="erro-campo" data-so="tela2-erro" role="alert"><span aria-hidden="true">⚠</span> Informe um valor maior que zero, como 25,50.</span>
+      </label>
+      <label>Descrição (opcional)
+        <span class="ajuda">Canal ou campanha, para você se lembrar.</span>
+        <input maxlength="80" value="Anúncio do dia" />
+        <span class="contador">14/80</span>
+      </label>
+      <a class="botao" href="#tela2-salvo" data-sem-link>Salvar gasto</a>
+    </form>
+    <div class="alerta alerta-ok" role="status" data-so="tela2">
+      <span class="icone" aria-hidden="true">✓</span>
+      <p><strong>Gasto salvo. ROI atualizado.</strong></p>
+    </div>
+    <div class="acoes" data-so="tela2">
+      <a class="botao-sec largo" href="#tela3">Ver ROI do período</a>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-lista">
+    <h2 id="t-lista">Gastos deste período</h2>
+    <ul class="lista">
+      <li><div><strong>10/11</strong> · Anúncio do dia</div><span class="valor">R$ 25,50</span>
+        <div class="linha-acoes"><a class="botao-perigo" href="#tela2-excluir">Excluir</a></div></li>
+      <li><div><strong>08/11</strong> · Anúncio Instagram - decoração</div><span class="valor">R$ 26,00</span>
+        <div class="linha-acoes"><button type="button" class="botao-perigo">Excluir</button></div></li>
+      <li><div><strong>06/11</strong> · Impulsionamento de oferta</div><span class="valor">R$ 38,50</span>
+        <div class="linha-acoes"><button type="button" class="botao-perigo">Excluir</button></div></li>
+      <li><div><strong>03/11</strong> · Anúncio Instagram - utensílios</div><span class="valor">R$ 30,00</span>
+        <div class="linha-acoes"><button type="button" class="botao-perigo">Excluir</button></div></li>
+    </ul>
+    <p class="total"><span>Total do período</span><span>R$ 120,00</span></p>
+
+    <div class="dialogo" role="alertdialog" aria-labelledby="t-confirma" data-so="tela2-excluir">
+      <h3 id="t-confirma">Excluir este gasto?</h3>
+      <p class="suave">Excluir o gasto de R$ 25,50 de 10/11? Esta ação não pode ser desfeita.</p>
+      <div class="botoes">
+        <a class="botao-sec" href="#tela2">Cancelar</a>
+        <a class="botao-perigo" href="#tela2">Excluir</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="acoes">
+    <a class="botao-sec largo" href="#tela1">Voltar ao início</a>
+  </div>
+</main>
+
+<!-- ======================= Tela 3: resultado (+ estados) ======================= -->
+<main class="pagina" data-tela="tela3 tela3-prejuizo tela3-alertas" hidden>
+  <header class="topo">
+    <div>
+      <p class="marca">Loja Exemplo Achadinhos</p>
+      <h1>Resultado do período</h1>
+      <p class="suave">01/11 a 10/11/2026</p>
+    </div>
+  </header>
+
+  <!-- Lucro -->
+  <section aria-live="polite" data-so="tela3">
+    <div class="cartoes">
+      <article class="cartao roi lucro">
+        <h3>ROI confirmado</h3>
+        <p class="numero">+35,00%</p>
+        <p class="selo"><span aria-hidden="true">▲</span> Lucro: os anúncios renderam mais do que custaram</p>
+      </article>
+      <article class="cartao"><h3>Comissão confirmada</h3><p class="numero">R$ 162,00</p><p class="detalhe">Pedidos concluídos</p></article>
+      <article class="cartao"><h3>Gasto com anúncios</h3><p class="numero">R$ 120,00</p><p class="detalhe">4 gastos registrados</p></article>
+      <article class="cartao"><h3>Comissão prevista</h3><p class="numero">R$ 210,00</p><p class="detalhe">Inclui pedidos pendentes</p></article>
+      <article class="cartao"><h3>ROI estimado</h3><p class="numero">+75,00%</p><p class="detalhe"><span class="estimativa">estimativa</span> com a comissão prevista</p></article>
+    </div>
+  </section>
+
+  <!-- Prejuízo -->
+  <section aria-live="polite" data-so="tela3-prejuizo">
+    <div class="cartoes">
+      <article class="cartao roi prejuizo">
+        <h3>ROI confirmado</h3>
+        <p class="numero">−12,50%</p>
+        <p class="selo"><span aria-hidden="true">▼</span> Prejuízo: os anúncios custaram mais do que renderam</p>
+      </article>
+      <article class="cartao"><h3>Comissão confirmada</h3><p class="numero">R$ 70,00</p><p class="detalhe">Pedidos concluídos</p></article>
+      <article class="cartao"><h3>Gasto com anúncios</h3><p class="numero">R$ 80,00</p><p class="detalhe">3 gastos registrados</p></article>
+    </div>
+  </section>
+
+  <!-- Alertas -->
+  <section data-so="tela3-alertas">
+    <div class="alerta alerta-aviso" role="status">
+      <span class="icone" aria-hidden="true">i</span>
+      <p><strong>Sem gasto registrado neste período.</strong> Registre um gasto para calcular o ROI.</p>
+    </div>
+    <div class="alerta alerta-erro" role="alert">
+      <span class="icone" aria-hidden="true">!</span>
+      <p><strong>Não foi possível consultar a Shopee agora.</strong> Tente novamente em instantes.</p>
+    </div>
+    <div class="alerta alerta-aviso" role="status">
+      <span class="icone" aria-hidden="true">i</span>
+      <p><strong>Cadastre suas credenciais da Shopee</strong> em <a href="#indice" style="color:inherit">Configurações</a>.</p>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-dias" data-so="tela3">
+    <h2 id="t-dias">Por dia</h2>
+    <table>
+      <thead><tr><th scope="col">Dia</th><th scope="col" class="num">Pedidos</th><th scope="col" class="num">Comissão confirmada</th><th scope="col" class="num">Gasto</th></tr></thead>
+      <tbody>
+        <tr><td>10/11</td><td class="num">3</td><td class="num">R$ 18,40</td><td class="num">R$ 25,50</td></tr>
+        <tr><td>08/11</td><td class="num">5</td><td class="num">R$ 31,20</td><td class="num">R$ 26,00</td></tr>
+        <tr><td>06/11</td><td class="num">6</td><td class="num">R$ 44,90</td><td class="num">R$ 38,50</td></tr>
+        <tr><td>03/11</td><td class="num">4</td><td class="num">R$ 27,50</td><td class="num">R$ 30,00</td></tr>
+        <tr><td>Outros dias</td><td class="num">7</td><td class="num">R$ 40,00</td><td class="num">R$ 0,00</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="acoes">
+    <a class="botao" href="#tela2">+ Registrar outro gasto</a>
+    <button type="button" class="botao-sec largo" data-so="tela3 tela3-prejuizo">Gerar PDF</button>
+    <a class="botao-sec largo" href="#tela1">Voltar ao início</a>
+  </div>
+  <p class="rodape" data-so="tela3 tela3-prejuizo">Atualizado às 14:32 · ROI = (comissão − gasto) ÷ gasto</p>
+</main>
+
+<script>
+  // Mostra a tela do endereço (#tela1, #tela2-erro...) e os blocos daquele estado.
+  function mostrar() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('tema') === 'escuro') document.documentElement.dataset.tema = 'escuro';
+    const alvo = location.hash.slice(1) || 'indice';
+    const id = alvo === 'tela2-salvo' ? 'tela2' : alvo;
+    document.querySelectorAll('[data-tela]').forEach((tela) => {
+      tela.hidden = !tela.dataset.tela.split(' ').includes(id);
+    });
+    document.querySelectorAll('[data-so]').forEach((bloco) => {
+      bloco.hidden = !bloco.dataset.so.split(' ').includes(id);
+    });
+    const valor = document.querySelector('.campo-valor');
+    valor.value = id === 'tela2-erro' ? '0' : '25,50';
+    valor.setAttribute('aria-invalid', String(id === 'tela2-erro'));
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', mostrar);
+  mostrar();
+</script>
+</body>
+</html>

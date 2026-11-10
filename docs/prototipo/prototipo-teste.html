@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Protótipo de teste | Painel do afiliado</title>
+<style>
+  /* Mesmas cores do sistema publicado (contraste mínimo medido: 4,69:1). */
+  :root {
+    --fundo: #f6f4f1; --superficie: #ffffff; --texto: #1f2933; --texto-suave: #5f6b76;
+    --borda: #e3dfd9; --destaque: #c2410c; --destaque-fundo: #fff1e8;
+    --confirmado: #0f766e; --confirmado-fundo: #e7f5f2; --erro: #b42318; --erro-fundo: #fef3f2;
+    --aviso: #8a4b00; --aviso-fundo: #fff6e0; --raio: 14px; color-scheme: light;
+  }
+  :root[data-tema="escuro"] {
+    --fundo: #161a1e; --superficie: #1f252b; --texto: #eef1f4; --texto-suave: #a3adb7;
+    --borda: #323a42; --destaque: #fb923c; --destaque-fundo: #2b211b;
+    --confirmado: #2dd4bf; --confirmado-fundo: #132b29; --erro: #fda29b; --erro-fundo: #3a1f1d;
+    --aviso: #fcd34d; --aviso-fundo: #33290f; color-scheme: dark;
+  }
+  /* Modo usado na Tarefa 3: tira a cor para testar se o resultado se entende sem ela. */
+  :root.cinza { filter: grayscale(1); }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--fundo); color: var(--texto);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45; }
+  .faixa { display: block; width: 100%; margin: 0; padding: 6px 16px; border: 0; background: var(--texto);
+    color: var(--fundo); font: inherit; font-size: .78rem; text-align: center; cursor: default; }
+  .pagina { max-width: 640px; margin: 0 auto; padding: 16px 16px 40px; }
+  :focus-visible { outline: 3px solid var(--destaque); outline-offset: 2px; }
+  h1 { margin: 2px 0 0; font-size: 1.45rem; }
+  h2 { margin: 0 0 10px; font-size: 1rem; }
+  .marca { margin: 0; color: var(--destaque); font-weight: 600; font-size: .9rem; }
+  .negocio { margin: 2px 0 0; font-weight: 600; }
+  .suave { color: var(--texto-suave); font-size: .88rem; margin: 0; }
+  .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+  .acoes-topo { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+  .bloco, .cartao { background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio); }
+  .bloco { padding: 16px; margin-top: 14px; }
+  .botao, .botao-sec, .atalho, .botao-perigo {
+    min-height: 44px; min-width: 44px; padding: 10px 16px; border-radius: 10px; font: inherit;
+    font-size: .95rem; cursor: pointer; text-decoration: none; display: inline-flex;
+    align-items: center; justify-content: center; gap: 8px; }
+  .botao { border: 0; background: var(--destaque); color: #fff; font-weight: 600; width: 100%; }
+  .botao-sec { border: 1px solid var(--borda); background: var(--superficie); color: var(--texto); }
+  .botao-perigo { border: 1px solid var(--erro); background: transparent; color: var(--erro); }
+  .largo { width: 100%; }
+  .atalhos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .atalho { border: 1px solid var(--borda); background: transparent; color: var(--texto); border-radius: 999px; }
+  .atalho[aria-pressed="true"] { background: var(--destaque-fundo); border: 2px solid var(--destaque);
+    color: var(--destaque); font-weight: 700; }
+  .atalho[aria-pressed="true"]::before { content: "✓ "; }
+  .datas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  label { display: grid; gap: 4px; font-size: .9rem; font-weight: 600; color: var(--texto); }
+  .ajuda { font-weight: 400; font-size: .82rem; color: var(--texto-suave); }
+  input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--texto-suave);
+    border-radius: 10px; background: var(--fundo); color: var(--texto); font: inherit; }
+  input[type="date"] { min-width: 0; padding: 8px; }
+  input[aria-invalid="true"] { border: 2px solid var(--erro); }
+  .acoes { display: grid; gap: 10px; margin-top: 14px; }
+  .alerta { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; padding: 12px 14px;
+    border-radius: 10px; border: 1px solid currentColor; font-size: .92rem; }
+  .alerta .icone { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; display: inline-grid;
+    place-items: center; border: 2px solid currentColor; font-weight: 800; font-size: .8rem; }
+  .alerta p { margin: 0; }
+  .alerta-erro { background: var(--erro-fundo); color: var(--erro); }
+  .alerta-ok { background: var(--confirmado-fundo); color: var(--confirmado); }
+  .alerta-aviso { background: var(--aviso-fundo); color: var(--aviso); }
+  .erro-campo { display: flex; gap: 6px; margin: 2px 0 0; color: var(--erro); font-size: .85rem; font-weight: 600; }
+  .contador { justify-self: end; font-weight: 400; font-size: .8rem; color: var(--texto-suave); }
+  .lista { list-style: none; margin: 0; padding: 0; }
+  .lista li { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 12px; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--borda); }
+  .lista li:last-child { border-bottom: 0; }
+  .lista li.novo { background: var(--confirmado-fundo); border-radius: 8px; padding-left: 8px; padding-right: 8px; }
+  .lista .valor { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lista .linha-acoes { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+  .total { display: flex; justify-content: space-between; margin-top: 10px; font-weight: 700; }
+  .dialogo { margin-top: 12px; padding: 16px; border: 2px solid var(--erro); border-radius: var(--raio); background: var(--superficie); }
+  .dialogo h3 { margin: 0 0 6px; font-size: 1rem; }
+  .dialogo .botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .cartoes { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .cartao { padding: 12px; }
+  .cartao h3 { margin: 0; font-size: .82rem; font-weight: 500; color: var(--texto-suave); }
+  .cartao .numero { margin: 4px 0 2px; font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cartao .detalhe { margin: 0; font-size: .78rem; color: var(--texto-suave); }
+  .cartao.roi { grid-column: 1 / -1; border-width: 2px; }
+  .cartao.lucro { border-color: var(--confirmado); background: var(--confirmado-fundo); }
+  .cartao.lucro .numero, .cartao.lucro .selo { color: var(--confirmado); }
+  .cartao.prejuizo { border-color: var(--erro); background: var(--erro-fundo); }
+  .cartao.prejuizo .numero, .cartao.prejuizo .selo { color: var(--erro); }
+  .cartao.roi .numero { font-size: 1.6rem; }
+  .selo { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: .95rem; margin: 0; }
+  .estimativa { display: inline-block; margin-right: 4px; padding: 1px 8px; border-radius: 999px;
+    border: 1px dashed var(--texto-suave); font-size: .75rem; color: var(--texto-suave); }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { padding: 8px 4px; border-bottom: 1px solid var(--borda); text-align: left; }
+  th { font-size: .78rem; color: var(--texto-suave); font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.num { white-space: nowrap; }
+  .rodape { margin-top: 14px; color: var(--texto-suave); font-size: .82rem; }
+  .registro td, .registro th { font-size: .8rem; }
+</style>
+</head>
+<body>
+<button type="button" class="faixa" id="faixa" title="Toque 3 vezes para alternar a escala de cinza (uso do pesquisador)">Protótipo do Painel do Afiliado · dados fictícios</button>
+
+<!-- ======================= Tela 1: início ======================= -->
+<main class="pagina" id="tela1" hidden>
+  <header class="topo">
+    <div>
+      <p class="marca">Olá, Ana</p>
+      <p class="negocio">Loja Exemplo Achadinhos</p>
+      <h1>Início</h1>
+      <p class="suave">Painel do Afiliado · comissões, gastos e ROI da Shopee</p>
+    </div>
+    <div class="acoes-topo">
+      <button type="button" class="botao-sec" data-nao-disponivel>Configurações</button>
+      <button type="button" class="botao-sec" data-nao-disponivel>Sair</button>
+    </div>
+  </header>
+
+  <section class="bloco" aria-labelledby="t-periodo" style="margin-top:0">
+    <h2 id="t-periodo">Período</h2>
+    <div class="atalhos" role="group" aria-label="Atalhos de período">
+      <button type="button" class="atalho" data-periodo="Hoje" aria-pressed="false">Hoje</button>
+      <button type="button" class="atalho" data-periodo="Ontem" aria-pressed="false">Ontem</button>
+      <button type="button" class="atalho" data-periodo="7 dias" aria-pressed="false">7 dias</button>
+      <button type="button" class="atalho" data-periodo="Este mês" aria-pressed="true">Este mês</button>
+      <button type="button" class="atalho" data-periodo="Mês passado" aria-pressed="false">Mês passado</button>
+    </div>
+    <div class="datas">
+      <label>Data inicial<input type="date" value="2026-11-01" /></label>
+      <label>Data final<input type="date" value="2026-11-10" /></label>
+    </div>
+    <p class="suave" style="margin-top:8px" id="texto-periodo" role="status">Selecionado: Este mês, de 01/11 a 10/11/2026.</p>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-acoes">
+    <h2 id="t-acoes">O que você quer fazer?</h2>
+    <div class="acoes" style="margin-top:0">
+      <a class="botao" href="#tela2">+ Registrar gasto</a>
+      <a class="botao-sec largo" href="#tela3">Ver resultado do período</a>
+    </div>
+  </section>
+
+  <p class="alerta alerta-aviso" id="aviso-indisponivel" role="status" hidden>
+    <span class="icone" aria-hidden="true">i</span> Esta opção não faz parte do protótipo de teste.
+  </p>
+</main>
+
+<!-- ======================= Tela 2: registrar gasto ======================= -->
+<main class="pagina" id="tela2" hidden>
+  <header class="topo">
+    <div>
+      <p class="marca">Loja Exemplo Achadinhos</p>
+      <h1>Registrar gasto com anúncios</h1>
+      <p class="suave">Período: 01/11 a 10/11/2026</p>
+    </div>
+  </header>
+
+  <section class="bloco" aria-labelledby="t-form" style="margin-top:0">
+    <h2 id="t-form">Novo gasto</h2>
+    <form id="form-gasto" class="acoes" style="margin-top:0" novalidate>
+      <label>Data do gasto
+        <input type="date" id="data" value="2026-11-10" aria-describedby="erro-data" />
+        <span id="erro-data" class="erro-campo" role="alert" hidden></span>
+      </label>
+      <label>Valor gasto (R$)
+        <span class="ajuda">Ex.: 25,50</span>
+        <input id="valor" inputmode="decimal" autocomplete="off" aria-describedby="erro-valor" />
+        <span id="erro-valor" class="erro-campo" role="alert" hidden></span>
+      </label>
+      <label>Descrição (opcional)
+        <span class="ajuda">Canal ou campanha, para você se lembrar.</span>
+        <input id="descricao" maxlength="80" autocomplete="off" />
+        <span class="contador" id="contador">0/80</span>
+      </label>
+      <button type="submit" class="botao">Salvar gasto</button>
+    </form>
+    <div class="alerta alerta-ok" id="sucesso" role="status" hidden>
+      <span class="icone" aria-hidden="true">✓</span>
+      <p><strong>Gasto salvo. ROI atualizado.</strong></p>
+    </div>
+    <div class="acoes" id="ir-roi" hidden>
+      <a class="botao-sec largo" href="#tela3">Ver ROI do período</a>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-lista">
+    <h2 id="t-lista">Gastos deste período</h2>
+    <ul class="lista" id="lista"></ul>
+    <p class="suave" id="lista-vazia" hidden>Nenhum gasto registrado neste período.</p>
+    <p class="total"><span>Total do período</span><span id="total"></span></p>
+
+    <div class="dialogo" id="dialogo" role="alertdialog" aria-labelledby="t-confirma" aria-describedby="txt-confirma" hidden>
+      <h3 id="t-confirma">Excluir este gasto?</h3>
+      <p class="suave" id="txt-confirma"></p>
+      <div class="botoes">
+        <button type="button" class="botao-sec" id="cancelar">Cancelar</button>
+        <button type="button" class="botao-perigo" id="confirmar">Excluir</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="acoes">
+    <a class="botao-sec largo" href="#tela1">Voltar ao início</a>
+  </div>
+</main>
+
+<!-- ======================= Tela 3: resultado ======================= -->
+<main class="pagina" id="tela3" hidden>
+  <header class="topo">
+    <div>
+      <p class="marca">Loja Exemplo Achadinhos</p>
+      <h1>Resultado do período</h1>
+      <p class="suave">01/11 a 10/11/2026</p>
+    </div>
+  </header>
+
+  <section aria-live="polite">
+    <div class="alerta alerta-aviso" id="sem-gasto" role="status" hidden>
+      <span class="icone" aria-hidden="true">i</span>
+      <p><strong>Sem gasto registrado neste período.</strong> Registre um gasto para calcular o ROI.</p>
+    </div>
+    <div class="cartoes" style="margin-top:12px">
+      <article class="cartao roi" id="cartao-roi">
+        <h3>ROI confirmado</h3>
+        <p class="numero" id="roi"></p>
+        <p class="selo" id="selo"></p>
+      </article>
+      <article class="cartao"><h3>Comissão confirmada</h3><p class="numero" id="c-conf"></p><p class="detalhe">Pedidos concluídos</p></article>
+      <article class="cartao"><h3>Gasto com anúncios</h3><p class="numero" id="c-gasto"></p><p class="detalhe" id="c-qtd"></p></article>
+      <article class="cartao"><h3>Comissão prevista</h3><p class="numero" id="c-prev"></p><p class="detalhe">Inclui pedidos pendentes</p></article>
+      <article class="cartao"><h3>ROI estimado</h3><p class="numero" id="roi-est"></p><p class="detalhe"><span class="estimativa">estimativa</span> com a comissão prevista</p></article>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-dias">
+    <h2 id="t-dias">Por dia</h2>
+    <table>
+      <thead><tr><th scope="col">Dia</th><th scope="col" class="num">Pedidos</th><th scope="col" class="num">Comissão confirmada</th><th scope="col" class="num">Gasto</th></tr></thead>
+      <tbody id="dias"></tbody>
+    </table>
+  </section>
+
+  <div class="acoes">
+    <a class="botao" href="#tela2">+ Registrar outro gasto</a>
+    <button type="button" class="botao-sec largo" onclick="window.print()">Gerar PDF</button>
+    <a class="botao-sec largo" href="#tela1">Voltar ao início</a>
+  </div>
+  <p class="rodape">ROI = (comissão − gasto) ÷ gasto</p>
+</main>
+
+<!-- ======================= Registro do pesquisador (#registro) ======================= -->
+<main class="pagina" id="registro" hidden>
+  <h1>Registro do teste</h1>
+  <p class="suave">Uso do pesquisador. Horários de cada evento, para calcular o tempo das tarefas.</p>
+  <section class="bloco">
+    <table class="registro"><thead><tr><th>Hora</th><th>Evento</th></tr></thead><tbody id="eventos"></tbody></table>
+  </section>
+  <div class="acoes">
+    <button type="button" class="botao-perigo" id="reiniciar">Reiniciar protótipo (apaga gastos e registro)</button>
+    <a class="botao-sec largo" href="#tela1">Ir para a Tela 1</a>
+  </div>
+</main>
+
+<script>
+  // ---------- Cenário fictício do teste ----------
+  const HOJE = '2026-11-10';
+  const INICIO = '2026-11-01';
+  const COMISSAO_CONFIRMADA = 105.00;
+  const COMISSAO_PREVISTA = 150.00;
+  const DIAS = [ // pedidos e comissão confirmada por dia (soma: R$ 105,00)
+    { dia: '2026-11-10', pedidos: 2, comissao: 12.00 },
+    { dia: '2026-11-08', pedidos: 4, comissao: 22.00 },
+    { dia: '2026-11-06', pedidos: 5, comissao: 31.50 },
+    { dia: '2026-11-03', pedidos: 3, comissao: 18.00 },
+    { dia: 'outros', pedidos: 4, comissao: 21.50 },
+  ];
+  const GASTOS_INICIAIS = [
+    { id: 1, data: '2026-11-08', descricao: 'Anúncio Instagram - decoração', centavos: 2600 },
+    { id: 2, data: '2026-11-06', descricao: 'Impulsionamento de oferta', centavos: 3850 },
+    { id: 3, data: '2026-11-03', descricao: 'Anúncio Instagram - utensílios', centavos: 3000 },
+  ];
+
+  // ---------- Estado (guardado na sessão do navegador para sobreviver a recarregar) ----------
+  function ler(chave, padrao) {
+    try { const v = sessionStorage.getItem(chave); return v ? JSON.parse(v) : padrao; } catch { return padrao; }
+  }
+  function gravar(chave, valor) { try { sessionStorage.setItem(chave, JSON.stringify(valor)); } catch {} }
+  let gastos = ler('gastos', GASTOS_INICIAIS);
+  let eventos = ler('eventos', []);
+  let ultimoNovo = null;
+  let paraExcluir = null;
+
+  function registrar(texto) {
+    const agora = new Date();
+    eventos.push({ hora: agora.toLocaleTimeString('pt-BR'), texto });
+    gravar('eventos', eventos);
+  }
+
+  // ---------- Formatação ----------
+  const reais = (v) => 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const pct = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v * 100).toFixed(2).replace('.', ',') + '%';
+  const diaMes = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+  const totalGasto = () => gastos.reduce((s, g) => s + g.centavos, 0) / 100;
+
+  // ---------- Navegação ----------
+  function mostrar() {
+    const id = location.hash.slice(1) || 'tela1';
+    const alvo = document.getElementById(id) ? id : 'tela1';
+    document.querySelectorAll('main').forEach((m) => { m.hidden = m.id !== alvo; });
+    if (alvo === 'tela2') desenharTela2();
+    if (alvo === 'tela3') desenharTela3();
+    if (alvo === 'registro') desenharRegistro();
+    if (alvo !== 'registro') registrar('Abriu ' + { tela1: 'Tela 1 (Início)', tela2: 'Tela 2 (Registrar gasto)', tela3: 'Tela 3 (Resultado)' }[alvo]);
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', mostrar);
+
+  // ---------- Tela 1 ----------
+  document.querySelectorAll('.atalho').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.atalho').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    const nome = b.dataset.periodo;
+    document.getElementById('texto-periodo').textContent = nome === 'Este mês'
+      ? 'Selecionado: Este mês, de 01/11 a 10/11/2026.'
+      : 'Selecionado: ' + nome + ' (no protótipo, os dados mostrados continuam sendo os deste mês).';
+    registrar('Escolheu o período: ' + nome);
+  }));
+  document.querySelectorAll('[data-nao-disponivel]').forEach((b) => b.addEventListener('click', () => {
+    document.getElementById('aviso-indisponivel').hidden = false;
+    registrar('Tocou em ' + b.textContent + ' (fora do teste)');
+  }));
+
+  // ---------- Tela 2 ----------
+  const form = document.getElementById('form-gasto');
+  const campoData = document.getElementById('data');
+  const campoValor = document.getElementById('valor');
+  const campoDesc = document.getElementById('descricao');
+
+  function desenharTela2() {
+    const lista = document.getElementById('lista');
+    lista.replaceChildren();
+    [...gastos].sort((a, b) => b.data.localeCompare(a.data) || b.id - a.id).forEach((g) => {
+      const li = document.createElement('li');
+      if (g.id === ultimoNovo) li.className = 'novo';
+      const texto = document.createElement('div');
+      const forte = document.createElement('strong');
+      forte.textContent = diaMes(g.data);
+      texto.append(forte, ' · ' + (g.descricao || 'Sem descrição'));
+      const valor = document.createElement('span');
+      valor.className = 'valor';
+      valor.textContent = reais(g.centavos / 100);
+      const acoes = document.createElement('div');
+      acoes.className = 'linha-acoes';
+      const excluir = document.createElement('button');
+      excluir.type = 'button';
+      excluir.className = 'botao-perigo';
+      excluir.textContent = 'Excluir';
+      excluir.setAttribute('aria-label', 'Excluir gasto de ' + reais(g.centavos / 100) + ' de ' + diaMes(g.data));
+      excluir.addEventListener('click', () => pedirExclusao(g));
+      acoes.append(excluir);
+      li.append(texto, valor, acoes);
+      lista.append(li);
+    });
+    document.getElementById('lista-vazia').hidden = gastos.length > 0;
+    document.getElementById('total').textContent = reais(totalGasto());
+  }
+
+  function mostrarErro(campo, idErro, mensagem) {
+    const el = document.getElementById(idErro);
+    el.hidden = !mensagem;
+    el.textContent = mensagem ? '⚠ ' + mensagem : '';
+    campo.setAttribute('aria-invalid', String(Boolean(mensagem)));
+  }
+
+  function lerValor(texto) {
+    const limpo = texto.replace(/R\$|\s/g, '');
+    if (!/^\d{1,6}([.,]\d{1,2})?$/.test(limpo)) return NaN;
+    return Math.round(parseFloat(limpo.replace(',', '.')) * 100);
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.getElementById('sucesso').hidden = true;
+    document.getElementById('ir-roi').hidden = true;
+    let primeiroErro = null;
+
+    const data = campoData.value;
+    let erroData = '';
+    if (!data) erroData = 'Informe a data do gasto.';
+    else if (data > HOJE) erroData = 'A data não pode ser futura. Use 10/11/2026 ou uma data anterior.';
+    else if (data < INICIO) erroData = 'Escolha uma data deste período, entre 01/11 e 10/11/2026.';
+    mostrarErro(campoData, 'erro-data', erroData);
+    if (erroData) primeiroErro = primeiroErro || campoData;
+
+    const centavos = lerValor(campoValor.value);
+    let erroValor = '';
+    if (!campoValor.value.trim()) erroValor = 'Informe o valor gasto, como 25,50.';
+    else if (Number.isNaN(centavos)) erroValor = 'Use só números e vírgula, como 25,50.';
+    else if (centavos <= 0) erroValor = 'Informe um valor maior que zero, como 25,50.';
+    mostrarErro(campoValor, 'erro-valor', erroValor);
+    if (erroValor) primeiroErro = primeiroErro || campoValor;
+
+    if (primeiroErro) {
+      registrar('Erro ao salvar: ' + [erroData, erroValor].filter(Boolean).join(' / ') + ' (digitado: "' + campoValor.value + '")');
+      primeiroErro.focus();
+      return;
+    }
+
+    const novo = { id: Date.now(), data, descricao: campoDesc.value.trim().slice(0, 80), centavos };
+    gastos.push(novo);
+    gravar('gastos', gastos);
+    ultimoNovo = novo.id;
+    registrar('Salvou gasto de ' + reais(centavos / 100) + ' em ' + diaMes(data) + (novo.descricao ? ' ("' + novo.descricao + '")' : ''));
+    form.reset();
+    campoData.value = HOJE;
+    document.getElementById('contador').textContent = '0/80';
+    desenharTela2();
+    document.getElementById('sucesso').hidden = false;
+    document.getElementById('ir-roi').hidden = false;
+  });
+
+  campoDesc.addEventListener('input', () => {
+    document.getElementById('contador').textContent = campoDesc.value.length + '/80';
+  });
+
+  function pedirExclusao(g) {
+    paraExcluir = g;
+    document.getElementById('txt-confirma').textContent =
+      'Excluir o gasto de ' + reais(g.centavos / 100) + ' de ' + diaMes(g.data) + '? Esta ação não pode ser desfeita.';
+    const dialogo = document.getElementById('dialogo');
+    dialogo.hidden = false;
+    dialogo.scrollIntoView({ block: 'center' });
+    document.getElementById('cancelar').focus();
+    registrar('Abriu confirmação de exclusão (' + reais(g.centavos / 100) + ')');
+  }
+  document.getElementById('cancelar').addEventListener('click', () => {
+    document.getElementById('dialogo').hidden = true;
+    registrar('Cancelou a exclusão');
+    paraExcluir = null;
+  });
+  document.getElementById('confirmar').addEventListener('click', () => {
+    gastos = gastos.filter((g) => g !== paraExcluir && g.id !== paraExcluir.id);
+    gravar('gastos', gastos);
+    registrar('Excluiu gasto de ' + reais(paraExcluir.centavos / 100));
+    paraExcluir = null;
+    document.getElementById('dialogo').hidden = true;
+    document.getElementById('sucesso').hidden = true;
+    desenharTela2();
+  });
+
+  // ---------- Tela 3 ----------
+  function desenharTela3() {
+    const gasto = totalGasto();
+    const semGasto = gasto <= 0;
+    document.getElementById('sem-gasto').hidden = !semGasto;
+    document.getElementById('c-conf').textContent = reais(COMISSAO_CONFIRMADA);
+    document.getElementById('c-prev').textContent = reais(COMISSAO_PREVISTA);
+    document.getElementById('c-gasto').textContent = reais(gasto);
+    document.getElementById('c-qtd').textContent = gastos.length + (gastos.length === 1 ? ' gasto registrado' : ' gastos registrados');
+
+    const cartao = document.getElementById('cartao-roi');
+    const roi = document.getElementById('roi');
+    const selo = document.getElementById('selo');
+    if (semGasto) {
+      cartao.className = 'cartao roi';
+      roi.textContent = '—';
+      selo.textContent = 'Sem gasto registrado: não há ROI para calcular.';
+      document.getElementById('roi-est').textContent = '—';
+    } else {
+      const r = (COMISSAO_CONFIRMADA - gasto) / gasto;
+      const lucro = r >= 0;
+      cartao.className = 'cartao roi ' + (lucro ? 'lucro' : 'prejuizo');
+      roi.textContent = pct(r);
+      selo.textContent = lucro
+        ? '▲ Lucro: os anúncios renderam mais do que custaram'
+        : '▼ Prejuízo: os anúncios custaram mais do que renderam';
+      document.getElementById('roi-est').textContent = pct((COMISSAO_PREVISTA - gasto) / gasto);
+      registrar('Tela 3 exibiu ROI ' + pct(r) + (lucro ? ' (lucro)' : ' (prejuízo)'));
+    }
+
+    const corpo = document.getElementById('dias');
+    corpo.replaceChildren();
+    DIAS.forEach((d) => {
+      const gastoDia = d.dia === 'outros'
+        ? gastos.filter((g) => !DIAS.some((x) => x.dia === g.data)).reduce((s, g) => s + g.centavos, 0) / 100
+        : gastos.filter((g) => g.data === d.dia).reduce((s, g) => s + g.centavos, 0) / 100;
+      const tr = document.createElement('tr');
+      [d.dia === 'outros' ? 'Outros dias' : diaMes(d.dia), String(d.pedidos), reais(d.comissao), reais(gastoDia)]
+        .forEach((t, i) => { const td = document.createElement('td'); if (i) td.className = 'num'; td.textContent = t; tr.append(td); });
+      corpo.append(tr);
+    });
+  }
+
+  // ---------- Registro do pesquisador ----------
+  function desenharRegistro() {
+    const corpo = document.getElementById('eventos');
+    corpo.replaceChildren();
+    eventos.forEach((ev) => {
+      const tr = document.createElement('tr');
+      [ev.hora, ev.texto].forEach((t) => { const td = document.createElement('td'); td.textContent = t; tr.append(td); });
+      corpo.append(tr);
+    });
+  }
+  document.getElementById('reiniciar').addEventListener('click', () => {
+    gastos = GASTOS_INICIAIS.map((g) => ({ ...g }));
+    eventos = [];
+    ultimoNovo = null;
+    gravar('gastos', gastos);
+    gravar('eventos', eventos);
+    document.documentElement.classList.remove('cinza');
+    location.hash = '#tela1';
+  });
+
+  // Escala de cinza: ?cinza=1 no endereço ou três toques rápidos na faixa do topo.
+  if (new URLSearchParams(location.search).get('cinza') === '1') document.documentElement.classList.add('cinza');
+  let toques = [];
+  document.getElementById('faixa').addEventListener('click', () => {
+    const agora = Date.now();
+    toques = toques.filter((t) => agora - t < 800).concat(agora);
+    if (toques.length >= 3) {
+      toques = [];
+      const ativo = document.documentElement.classList.toggle('cinza');
+      registrar('Pesquisador ' + (ativo ? 'ligou' : 'desligou') + ' a escala de cinza');
+    }
+  });
+
+  mostrar();
+</script>
+</body>
+</html>
