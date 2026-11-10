@@ -167,8 +167,8 @@
         <span id="erro-data" class="erro-campo" role="alert" hidden></span>
       </label>
       <label>Valor gasto (R$)
-        <span class="ajuda">Ex.: 25,50</span>
-        <input id="valor" inputmode="decimal" autocomplete="off" aria-describedby="erro-valor" />
+        <span class="ajuda" id="ajuda-valor">Digite só os números: a vírgula aparece sozinha (2550 vira 25,50).</span>
+        <input id="valor" inputmode="numeric" placeholder="0,00" autocomplete="off" aria-describedby="ajuda-valor erro-valor" />
         <span id="erro-valor" class="erro-campo" role="alert" hidden></span>
       </label>
       <label>Descrição (opcional)
@@ -377,9 +377,19 @@
 
   function lerValor(texto) {
     const limpo = texto.replace(/R\$|\s/g, '');
-    if (!/^\d{1,6}([.,]\d{1,2})?$/.test(limpo)) return NaN;
-    return Math.round(parseFloat(limpo.replace(',', '.')) * 100);
+    if (!/^(\d{1,3}(\.\d{3})+,\d{1,2}|\d+([.,]\d{1,2})?)$/.test(limpo)) return NaN;
+    const normalizado = limpo.includes(',') ? limpo.replace(/\./g, '').replace(',', '.') : limpo;
+    return Math.round(parseFloat(normalizado) * 100);
   }
+
+  // Mesma máscara do sistema publicado: "2550" vira "25,50" enquanto a pessoa digita.
+  function mascararValor(texto) {
+    const digitos = String(texto).replace(/\D/g, '').replace(/^0+/, '').slice(0, 9);
+    if (!digitos) return '';
+    const completo = digitos.padStart(3, '0');
+    return Number(completo.slice(0, -2)).toLocaleString('pt-BR') + ',' + completo.slice(-2);
+  }
+  campoValor.addEventListener('input', () => { campoValor.value = mascararValor(campoValor.value); });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
