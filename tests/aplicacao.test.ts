@@ -353,3 +353,113 @@ test('só quem está logado altera o nome do negócio', async () => {
   const resposta = await pedir(criarContexto(), '/api/negocio', { method: 'POST', body: JSON.stringify({ nome: 'x' }) });
   assert.equal(resposta.status, 401);
 });
+
+// --- Gastos com anúncios e ROI ---
+
+// 10/11/2026 às 15h em Brasília.
+const AGORA = Date.parse('2026-11-10T15:00:00-03:00');
+
+function registrarGasto(contexto: Contexto, cookie: string, corpo: unknown) {
+  return pedir(contexto, '/api/gastos', { method: 'POST', headers: { Cookie: cookie }, body: JSON.stringify(corpo) });
+}
+
+async function listarGastos(contexto: Contexto, cookie: string, inicio = '2026-11-01', fim = '2026-11-10') {
+  return (await pedir(contexto, `/api/gastos?inicio=${inicio}&fim=${fim}`, { headers: { Cookie: cookie } })).json();
+}
+
+test('registra um gasto válido e o lista no período com o total', async () => {
+  const contexto = criarContexto({ agora: () => AGORA });
+  const cookie = await logar(contexto);
+  const resposta = await registrarGasto(contexto, cookie, { data: '2026-11-10', valor: '25,50', descricao: 'Anúncio do dia' });
+  assert.equal(resposta.status, 201);
+  await registrarGasto(contexto, cookie, { data: '2026-11-03', valor: '30' });
+  await registrarGasto(contexto, cookie, { data: '2026-10-31', valor: '99' }); // fora do período
+
+  const lista = await listarGastos(contexto, cookie);
+  assert.equal(lista.totalCentavos, 5550);
+  assert.deepEqual(
+    lista.gastos.map((g: { data: string; valorCentavos: number; descricao: string | null }) => [g.data, g.valorCentavos, g.descricao]),
+    [
+      ['2026-11-10', 2550, 'Anúncio do dia'],
+      ['2026-11-03', 3000, null],
+    ],
+  );
+});
+
+test('gasto inválido é recusado com o campo e nada é gravado', async () => {
+  const contexto = criarContexto({ agora: () => AGORA });
+  const cookie = await logar(contexto);
+  for (const corpo of [{ data: '2026-11-10', valor: '0' }, { data: '2026-11-11', valor: '10' }, { data: '2026-11-10', valor: 'abc' }]) {
+    const resposta = await registrarGasto(contexto, cookie, corpo);
+    assert.equal(resposta.status, 400, JSON.stringify(corpo));
+    assert.ok((await resposta.json()).campo);
+  }
+  assert.equal((await pedir(contexto, '/api/gastos', { method: 'POST', headers: { Cookie: cookie }, body: 'não é json' })).status, 400);
+  assert.equal((await listarGastos(contexto, cookie)).gastos.length, 0);
+});
+
+test('a descrição é devolvida como texto, sem interpretar marcação', async () => {
+  const contexto = criarContexto({ agora: () => AGORA });
+  const cookie = await logar(contexto);
+  const resposta = await registrarGasto(contexto, cookie, { data: '2026-11-10', valor: '5', descricao: '<script>alert(1)</script>' });
+  assert.equal((await resposta.json()).gasto.descricao, '<script>alert(1)</script>');
+  assert.equal(resposta.headers.get('Content-Type'), 'application/json; charset=utf-8');
+});
+
+test('uma usuária não vê nem exclui os gastos de outra', async () => {
+  const contexto = criarContexto({ agora: () => AGORA });
+  const outra: PerfilGoogle = { id: 'google-999', email: 'outra@exemplo.com', nome: 'Outra' };
+  const cookieIsa = await logar(contexto);
+  const cookieOutra = await logar(contexto, outra);
+  const { gasto } = await (await registrarGasto(contexto, cookieIsa, { data: '2026-11-10', valor: '25,50' })).json();
+
+  assert.equal((await listarGastos(contexto, cookieOutra)).gastos.length, 0);
+  const tentativa = await pedir(contexto, `/api/gastos/${gasto.id}`, { method: 'DELETE', headers: { Cookie: cookieOutra } });
+  assert.equal(tentativa.status, 404);
+  assert.equal((await listarGastos(contexto, cookieIsa)).gastos.length, 1);
+
+  const exclusao = await pedir(contexto, `/api/gastos/${gasto.id}`, { method: 'DELETE', headers: { Cookie: cookieIsa } });
+  assert.equal(exclusao.status, 204);
+  assert.equal((await listarGastos(contexto, cookieIsa)).gastos.length, 0);
+});
+
+test('sem login, as rotas de gastos respondem 401', async () => {
+  const contexto = criarContexto();
+  assert.equal((await pedir(contexto, '/api/gastos?inicio=2026-11-01&fim=2026-11-10')).status, 401);
+  assert.equal((await pedir(contexto, '/api/gastos', { method: 'POST', body: '{}' })).status, 401);
+  assert.equal((await pedir(contexto, '/api/gastos/1', { method: 'DELETE' })).status, 401);
+});
+
+test('o relatório traz o gasto do período e o ROI', async () => {
+  const contexto = criarContexto({
+    agora: () => AGORA,
+    criarFonte: () => async () => [
+      { conversionId: 1, purchaseTime: AGORA / 1000, totalCommission: '105.00', orders: [{ orderId: 'P1', orderStatus: 'COMPLETED' }] },
+      { conversionId: 2, purchaseTime: AGORA / 1000, totalCommission: '45.00', orders: [{ orderId: 'P2', orderStatus: 'PENDING' }] },
+    ],
+  });
+  const cookie = await logar(contexto);
+  await contexto.repositorio.salvarCredenciais(ISABELY.id, '123', await cifrar('x', CHAVE));
+  await registrarGasto(contexto, cookie, { data: '2026-11-08', valor: '94,50' });
+  await registrarGasto(contexto, cookie, { data: '2026-11-10', valor: '25,50' });
+
+  const dados = await (await pedir(contexto, '/api/relatorio?inicio=2026-11-01&fim=2026-11-10', { headers: { Cookie: cookie } })).json();
+  assert.equal(dados.gastoAnuncios, 120);
+  assert.equal(dados.roiConfirmado, -0.125);
+  assert.equal(dados.roiEstimado, 0.25);
+  assert.deepEqual(
+    dados.porDia.map((d: { dia: string; gasto: number }) => [d.dia, d.gasto]),
+    [
+      ['2026-11-08', 94.5],
+      ['2026-11-10', 25.5],
+    ],
+  );
+});
+
+test('excluir a conta apaga também os gastos', async () => {
+  const contexto = criarContexto({ agora: () => AGORA });
+  const cookie = await logar(contexto);
+  await registrarGasto(contexto, cookie, { data: '2026-11-10', valor: '10' });
+  await pedir(contexto, '/api/conta', { method: 'DELETE', headers: { Cookie: cookie } });
+  assert.deepEqual(await contexto.repositorio.listarGastos(ISABELY.id, '2026-01-01', '2026-12-31'), []);
+});
