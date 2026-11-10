@@ -109,6 +109,7 @@ test('sem login, a página leva ao login e a API responde 401', async () => {
   assert.equal(pagina.headers.get('Location'), '/login');
   assert.equal((await pedir(contexto, '/api/eu')).status, 401);
   assert.equal((await pedir(contexto, '/configuracoes')).status, 302);
+  assert.equal((await pedir(contexto, '/gastos')).headers.get('Location'), '/login');
 });
 
 test('a tela de login e o estilo ficam acessíveis sem login', async () => {

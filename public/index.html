@@ -49,7 +49,7 @@
           </label>
           <button type="submit" id="consultar" class="botao">Consultar</button>
         </form>
-        <a href="#gastos" id="ir-para-gastos" class="botao botao-largo">+ Registrar gasto com anúncios</a>
+        <a href="/gastos" id="ir-para-gastos" class="botao botao-largo">+ Registrar gasto com anúncios</a>
       </section>
 
       <p id="erro" class="erro" role="alert" hidden></p>
@@ -147,46 +147,6 @@
 
         <p id="atualizado-em" class="rodape"></p>
         <p class="rodape">ROI = (comissão − gasto) ÷ gasto. O confirmado usa só pedidos concluídos.</p>
-      </section>
-
-      <section id="gastos" class="bloco bloco-gastos" aria-labelledby="titulo-gastos">
-        <h2 id="titulo-gastos" class="titulo-secao">Gastos com anúncios</h2>
-        <form id="form-gasto" class="formulario form-gasto" novalidate>
-          <label>
-            Data do gasto
-            <input type="date" id="gasto-data" name="data" required aria-describedby="erro-gasto-data" />
-            <span id="erro-gasto-data" class="erro-campo" role="alert" hidden></span>
-          </label>
-          <label>
-            Valor gasto (R$)
-            <span class="ajuda" id="ajuda-gasto-valor">Digite só os números: a vírgula aparece sozinha (2550 vira 25,50).</span>
-            <input type="text" id="gasto-valor" name="valor" inputmode="numeric" placeholder="0,00" autocomplete="off" required aria-describedby="ajuda-gasto-valor erro-gasto-valor" />
-            <span id="erro-gasto-valor" class="erro-campo" role="alert" hidden></span>
-          </label>
-          <label>
-            Descrição (opcional)
-            <span class="ajuda">Canal ou campanha, para você se lembrar.</span>
-            <input type="text" id="gasto-descricao" name="descricao" maxlength="80" autocomplete="off" aria-describedby="erro-gasto-descricao contador-descricao" />
-            <span id="contador-descricao" class="contador">0/80</span>
-            <span id="erro-gasto-descricao" class="erro-campo" role="alert" hidden></span>
-          </label>
-          <button type="submit" id="salvar-gasto" class="botao">Salvar gasto</button>
-        </form>
-        <p id="gasto-salvo" class="aviso aviso-ok" role="status" hidden></p>
-
-        <h3 class="subtitulo">Gastos deste período</h3>
-        <ul id="lista-gastos" class="lista-gastos"></ul>
-        <p id="sem-gastos" class="vazio" hidden>Nenhum gasto registrado neste período.</p>
-        <p class="total-gastos"><span>Total do período</span><span id="total-gastos">R$ 0,00</span></p>
-
-        <div id="confirmar-exclusao" class="dialogo" role="alertdialog" aria-labelledby="titulo-exclusao" aria-describedby="texto-exclusao" hidden>
-          <h3 id="titulo-exclusao">Excluir este gasto?</h3>
-          <p id="texto-exclusao" class="descricao"></p>
-          <div class="botoes-dialogo">
-            <button type="button" id="cancelar-exclusao" class="botao-secundario">Cancelar</button>
-            <button type="button" id="confirmar-exclusao-botao" class="botao-perigo">Excluir</button>
-          </div>
-        </div>
       </section>
     </main>
     <script src="app.js" type="module"></script>

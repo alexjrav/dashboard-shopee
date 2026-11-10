@@ -501,6 +501,13 @@ a.botao {
   margin-top: 14px;
 }
 
+a.botao-secundario.botao-largo-sec {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 14px;
+}
+
 .cartao.roi {
   grid-column: 1 / -1;
   border-width: 2px;

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Registrar gasto | Painel do afiliado</title>
+    <link rel="stylesheet" href="estilo.css" />
+    <script>
+      // Aplica o tema salvo antes de desenhar a página, para não piscar.
+      try {
+        const tema = localStorage.getItem('tema');
+        if (tema === 'claro' || tema === 'escuro') document.documentElement.dataset.tema = tema;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <main class="pagina pagina-estreita">
+      <header class="topo">
+        <div>
+          <p id="nome-negocio" class="marca">&nbsp;</p>
+          <h1>Registrar gasto com anúncios</h1>
+          <p id="descricao-periodo" class="descricao"></p>
+        </div>
+      </header>
+
+      <section class="bloco" aria-labelledby="titulo-novo-gasto" style="margin-top: 0">
+        <h2 id="titulo-novo-gasto" class="titulo-secao">Novo gasto</h2>
+        <form id="form-gasto" class="formulario form-gasto" novalidate>
+          <label>
+            Data do gasto
+            <input type="date" id="gasto-data" name="data" required aria-describedby="erro-gasto-data" />
+            <span id="erro-gasto-data" class="erro-campo" role="alert" hidden></span>
+          </label>
+          <label>
+            Valor gasto (R$)
+            <span class="ajuda" id="ajuda-gasto-valor">Digite só os números: a vírgula aparece sozinha (2550 vira 25,50).</span>
+            <input type="text" id="gasto-valor" name="valor" inputmode="numeric" placeholder="0,00" autocomplete="off" required aria-describedby="ajuda-gasto-valor erro-gasto-valor" />
+            <span id="erro-gasto-valor" class="erro-campo" role="alert" hidden></span>
+          </label>
+          <label>
+            Descrição (opcional)
+            <span class="ajuda">Canal ou campanha, para você se lembrar.</span>
+            <input type="text" id="gasto-descricao" name="descricao" maxlength="80" autocomplete="off" aria-describedby="contador-descricao erro-gasto-descricao" />
+            <span id="contador-descricao" class="contador">0/80</span>
+            <span id="erro-gasto-descricao" class="erro-campo" role="alert" hidden></span>
+          </label>
+          <button type="submit" id="salvar-gasto" class="botao">Salvar gasto</button>
+        </form>
+        <p id="gasto-salvo" class="aviso aviso-ok" role="status" hidden></p>
+        <a href="/" id="ver-roi" class="botao-secundario botao-largo-sec" hidden>Ver ROI do período</a>
+      </section>
+
+      <section class="bloco" aria-labelledby="titulo-lista-gastos">
+        <h2 id="titulo-lista-gastos" class="titulo-secao">Gastos deste período</h2>
+        <ul id="lista-gastos" class="lista-gastos"></ul>
+        <p id="sem-gastos" class="vazio" hidden>Nenhum gasto registrado neste período.</p>
+        <p id="erro-lista" class="erro" role="alert" hidden></p>
+        <p class="total-gastos"><span>Total do período</span><span id="total-gastos">R$ 0,00</span></p>
+
+        <div id="confirmar-exclusao" class="dialogo" role="alertdialog" aria-labelledby="titulo-exclusao" aria-describedby="texto-exclusao" hidden>
+          <h3 id="titulo-exclusao">Excluir este gasto?</h3>
+          <p id="texto-exclusao" class="descricao"></p>
+          <div class="botoes-dialogo">
+            <button type="button" id="cancelar-exclusao" class="botao-secundario">Cancelar</button>
+            <button type="button" id="confirmar-exclusao-botao" class="botao-perigo">Excluir</button>
+          </div>
+        </div>
+      </section>
+
+      <a href="/" id="voltar" class="botao-secundario botao-largo-sec">Voltar ao painel</a>
+    </main>
+    <script src="gastos.js" type="module"></script>
+  </body>
+</html>
