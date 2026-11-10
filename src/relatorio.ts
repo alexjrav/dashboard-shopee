@@ -45,6 +45,50 @@ export type Resumo = {
   topProdutos: Produto[];
 };
 
+export type LinhaDiaComGasto = LinhaDia & { gasto: number };
+
+export type ResumoComRoi = Omit<Resumo, 'porDia'> & {
+  gastoAnuncios: number;
+  quantidadeGastos: number;
+  // (comissão − gasto) ÷ gasto, como fração (0.35 = 35%). Nulo quando não há gasto no período.
+  roiConfirmado: number | null;
+  roiEstimado: number | null;
+  porDia: LinhaDiaComGasto[];
+};
+
+// Fração com 4 casas, que vira percentual com 2 casas na tela.
+function calcularRoi(comissaoCentavos: number, gastoCentavos: number): number | null {
+  if (gastoCentavos <= 0) return null;
+  return Math.round(((comissaoCentavos - gastoCentavos) / gastoCentavos) * 10_000) / 10_000;
+}
+
+// Junta ao resumo da Shopee os gastos com anúncios do mesmo período e calcula o ROI.
+// O ROI confirmado usa só pedidos concluídos; o estimado usa a comissão prevista, que inclui pendentes.
+export function incluirGastos(resumo: Resumo, gastos: Array<{ data: string; valorCentavos: number }>): ResumoComRoi {
+  const gastoCentavos = gastos.reduce((soma, gasto) => soma + gasto.valorCentavos, 0);
+  const gastoPorDia = new Map<string, number>();
+  for (const gasto of gastos) {
+    gastoPorDia.set(gasto.data, (gastoPorDia.get(gasto.data) ?? 0) + gasto.valorCentavos);
+  }
+
+  // Dias só com gasto (sem venda) também aparecem na tabela por dia.
+  const dias = new Map<string, LinhaDiaComGasto>(resumo.porDia.map((linha) => [linha.dia, { ...linha, gasto: 0 }]));
+  for (const [dia, centavos] of gastoPorDia) {
+    const linha = dias.get(dia) ?? { dia, pedidos: 0, comissao: 0, comissaoConfirmada: 0, gasto: 0 };
+    linha.gasto = centavos / 100;
+    dias.set(dia, linha);
+  }
+
+  return {
+    ...resumo,
+    gastoAnuncios: gastoCentavos / 100,
+    quantidadeGastos: gastos.length,
+    roiConfirmado: calcularRoi(Math.round(resumo.comissaoConfirmada * 100), gastoCentavos),
+    roiEstimado: calcularRoi(Math.round(resumo.comissaoPrevista * 100), gastoCentavos),
+    porDia: [...dias.values()].sort((a, b) => a.dia.localeCompare(b.dia)),
+  };
+}
+
 export function lerComissao(valor: string): number {
   const partes = /^(-?)(\d+)(?:\.(\d+))?$/.exec(valor.trim());
   if (!partes) {

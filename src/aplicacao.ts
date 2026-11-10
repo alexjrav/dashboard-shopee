@@ -13,7 +13,7 @@ import {
 import { cifrar, decifrar } from './cifra.ts';
 import { ErroGasto, validarGasto } from './gastos.ts';
 import { desafioPkce, urlDeAutorizacao, type PerfilGoogle } from './google.ts';
-import { diaEmBrasilia, ErroPeriodo, intervaloDoPeriodo, resumir } from './relatorio.ts';
+import { diaEmBrasilia, ErroPeriodo, incluirGastos, intervaloDoPeriodo, resumir } from './relatorio.ts';
 import type { Repositorio, Usuario } from './repositorio.ts';
 import type { FonteDeConversoes } from './shopee.ts';
 
@@ -121,7 +121,8 @@ async function relatorio(url: URL, usuario: Usuario, ambiente: Ambiente, config:
     const { inicioTs, fimTs } = intervaloDoPeriodo(inicio, fim);
     const secret = await decifrar(credenciais.secretCifrado, config.chave);
     const conversoes = await ambiente.criarFonte(credenciais.appId, secret)(inicioTs, fimTs);
-    return json(200, { inicio, fim, atualizadoEm: new Date().toISOString(), ...resumir(conversoes) });
+    const gastos = await ambiente.repositorio.listarGastos(usuario.id, inicio, fim);
+    return json(200, { inicio, fim, atualizadoEm: new Date().toISOString(), ...incluirGastos(resumir(conversoes), gastos) });
   } catch (erro) {
     if (erro instanceof ErroPeriodo) {
       return json(400, { erro: erro.message });
