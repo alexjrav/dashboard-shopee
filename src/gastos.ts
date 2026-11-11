@@ -1,4 +1,5 @@
 // Regras dos gastos com anúncios. Funções puras, testadas sem banco nem rede.
+import { dataValida } from './relatorio.ts';
 import type { NovoGasto } from './repositorio.ts';
 
 export const MAX_DESCRICAO = 80;
@@ -22,13 +23,6 @@ export function lerValorEmCentavos(texto: string): number {
   const normalizado = limpo.includes(',') ? limpo.replace(/\./g, '').replace(',', '.') : limpo;
   const [inteiro, decimais = ''] = normalizado.split('.');
   return Number(inteiro) * 100 + Number(decimais.padEnd(2, '0'));
-}
-
-function dataValida(texto: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
-  const [ano, mes, dia] = texto.split('-').map(Number);
-  const data = new Date(Date.UTC(ano, mes - 1, dia));
-  return data.getUTCFullYear() === ano && data.getUTCMonth() === mes - 1 && data.getUTCDate() === dia;
 }
 
 // hoje: data de Brasília no formato AAAA-MM-DD. Lança ErroGasto com a correção a fazer.
