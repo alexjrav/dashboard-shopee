@@ -60,7 +60,7 @@ teste-api-shopee/
 │   └── relatorio.ts       Cálculos: totais, status, dias, produtos, ROI, fuso de Brasília
 ├── public/                Telas: login, painel (index), gastos, configurações, estilo, scripts
 ├── migrations/            Criação e alteração das tabelas do banco
-├── tests/                 Testes automáticos (57)
+├── tests/                 Testes automáticos (64)
 ├── docs/                  Guia em PDF e protótipo das telas (docs/prototipo)
 ├── scripts/descobrir_campos.ts   Lista o que a API da Shopee oferece (usa o .env)
 ├── wrangler.jsonc         Configuração do Worker, do banco e dos arquivos da tela
@@ -80,7 +80,7 @@ teste-api-shopee/
 ```bash
 npm install
 npm run dev        # aplica as migrações no banco local e abre em http://localhost:8787
-npm test           # roda os 57 testes automáticos
+npm test           # roda os 64 testes automáticos
 ```
 
 - O `.dev.vars` guarda os segredos locais. Copie o `.dev.vars.example` e preencha (seção 7).
@@ -318,6 +318,7 @@ A rotina é: `npm test`, `git add` dos arquivos alterados, `git commit -m "tipo:
 - Sessão: cookie assinado, `HttpOnly`, `Secure`, 30 dias; encerra ao sair, excluir a conta ou sair da lista.
 - Login Google com PKCE e conferência do token (emissor, aplicativo, validade, e-mail verificado).
 - Pedidos de alteração vindos de outro site são recusados.
+- Cabeçalhos de segurança em toda resposta: `Content-Security-Policy` (só scripts, estilos e conexões do próprio site, sem `unsafe-inline`; imagens https para o Top 5), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` e `Referrer-Policy`. Por isso as páginas não têm script nem estilo dentro do HTML (o tema fica em `public/tema.js`).
 - Cada pessoa só consulta a Shopee com as próprias credenciais.
 - **Nunca** coloque `.dev.vars`, `.env`, `resposta.json` ou prints com AppID/Secret em pastas públicas, no Git ou em mensagens.
 - Se um Secret vazar: gere outro no portal da Shopee e cadastre de novo; para o Google, crie outro segredo do cliente.
@@ -349,5 +350,5 @@ A rotina é: `npm test`, `git add` dos arquivos alterados, `git commit -m "tipo:
 1. **Conferir gastos e ROI em produção** com uma conta logada: registrar e excluir um gasto de teste e ver o ROI do período. Publicado em 10/11/2026, com a migração `0003` aplicada no banco real.
 2. **Validação com a Isabely** (13 a 15/11/2026): teste do protótipo (`docs/prototipo/`), medir o tempo antes e depois, conferir os totais com o painel da Shopee e obter o termo de aceite.
 3. **Confirmar com a Isabely** a fórmula de ROI que ela usa e se há outros custos além dos anúncios.
-4. **Planejados, ainda não feitos:** cabeçalho Content-Security-Policy, limite de tentativas nas rotas de login e de credenciais, migração da tela para Angular.
+4. **Planejados, ainda não feitos:** limite de tentativas nas rotas de login e de credenciais e migração da tela para Angular.
 5. **Opcional:** domínio próprio, verificação do app no Google, edição de gasto (hoje: excluir e lançar de novo) e ROI por anúncio.

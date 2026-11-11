@@ -1,14 +1,9 @@
 // Tela de registro dos gastos com anúncios. Recebe o período do painel pelo endereço
 // (/gastos?inicio=AAAA-MM-DD&fim=AAAA-MM-DD) e devolve para o painel no mesmo período.
+import { formatarDia, hoje, inicioDoMes, periodoDoEndereco } from './datas.js';
 import { ativarMascaraDeValor } from './valor.js';
 
 const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const formatoDia = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'America/Sao_Paulo',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
 
 const elementos = {
   nomeNegocio: document.getElementById('nome-negocio'),
@@ -41,25 +36,10 @@ const campos = { data: elementos.data, valor: elementos.valor, descricao: elemen
 let gastoParaExcluir = null;
 let botaoQueAbriu = null;
 
-function hoje() {
-  return formatoDia.format(new Date());
-}
-
-function formatarDia(data) {
-  const [ano, mes, dia] = data.split('-');
-  return `${dia}/${mes}/${ano}`;
-}
-
-const dataValida = (texto) => /^\d{4}-\d{2}-\d{2}$/.test(texto ?? '');
-
 // Período vindo do painel; sem ele (ou inválido), usa o mês atual até hoje.
 function lerPeriodo() {
-  const parametros = new URLSearchParams(window.location.search);
-  const inicio = parametros.get('inicio');
-  const fim = parametros.get('fim');
-  if (dataValida(inicio) && dataValida(fim) && inicio <= fim) return { inicio, fim };
   const atual = hoje();
-  return { inicio: `${atual.slice(0, 7)}-01`, fim: atual };
+  return periodoDoEndereco(window.location.search) ?? { inicio: inicioDoMes(atual), fim: atual };
 }
 
 const periodo = lerPeriodo();

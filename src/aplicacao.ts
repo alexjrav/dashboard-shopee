@@ -46,7 +46,37 @@ function lerEmailsPermitidos(lista: string): Set<string> {
 }
 
 // Arquivos que a tela de login precisa antes de a pessoa entrar.
-const CAMINHOS_PUBLICOS = new Set(['/login', '/login.html', '/login.js', '/estilo.css']);
+const CAMINHOS_PUBLICOS = new Set(['/login', '/login.html', '/login.js', '/estilo.css', '/tema.js']);
+
+// Política de segurança de conteúdo: o navegador só executa scripts e estilos vindos do próprio site,
+// só conversa com o próprio servidor e não deixa outro site exibir o painel dentro de um frame.
+// Imagens https ficam liberadas porque as fotos do Top 5 vêm do servidor de imagens da Shopee.
+const POLITICA_DE_CONTEUDO = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' https: data:",
+  "connect-src 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'none'",
+  "object-src 'none'",
+].join('; ');
+
+const CABECALHOS_DE_SEGURANCA: Record<string, string> = {
+  'Content-Security-Policy': POLITICA_DE_CONTEUDO,
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+};
+
+// Aplica os cabeçalhos em toda resposta (páginas, arquivos, API e redirecionamentos).
+// A resposta é recriada porque as que vêm dos arquivos estáticos têm cabeçalhos imutáveis.
+function comCabecalhosDeSeguranca(resposta: Response): Response {
+  const headers = new Headers(resposta.headers);
+  for (const [nome, valor] of Object.entries(CABECALHOS_DE_SEGURANCA)) headers.set(nome, valor);
+  return new Response(resposta.body, { status: resposta.status, statusText: resposta.statusText, headers });
+}
 const HOSTS_LOCAIS = new Set(['localhost', '127.0.0.1']);
 const USUARIO_DE_DESENVOLVIMENTO: Usuario = { id: 'dev', email: 'dev@localhost', nome: 'Usuário de teste' };
 
@@ -217,6 +247,10 @@ async function excluirGasto(id: string, usuario: Usuario, ambiente: Ambiente) {
 }
 
 export async function tratarRequisicao(requisicao: Request, ambiente: Ambiente): Promise<Response> {
+  return comCabecalhosDeSeguranca(await responder(requisicao, ambiente));
+}
+
+async function responder(requisicao: Request, ambiente: Ambiente): Promise<Response> {
   const url = new URL(requisicao.url);
   const seguro = url.protocol === 'https:';
   const metodo = requisicao.method;

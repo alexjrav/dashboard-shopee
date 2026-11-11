@@ -5,13 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Registrar gasto | Painel do afiliado</title>
     <link rel="stylesheet" href="estilo.css" />
-    <script>
-      // Aplica o tema salvo antes de desenhar a página, para não piscar.
-      try {
-        const tema = localStorage.getItem('tema');
-        if (tema === 'claro' || tema === 'escuro') document.documentElement.dataset.tema = tema;
-      } catch {}
-    </script>
+    <script src="tema.js"></script>
   </head>
   <body>
     <main class="pagina pagina-estreita">
@@ -23,7 +17,7 @@
         </div>
       </header>
 
-      <section class="bloco" aria-labelledby="titulo-novo-gasto" style="margin-top: 0">
+      <section class="bloco sem-margem-topo" aria-labelledby="titulo-novo-gasto">
         <h2 id="titulo-novo-gasto" class="titulo-secao">Novo gasto</h2>
         <form id="form-gasto" class="formulario form-gasto" novalidate>
           <label>

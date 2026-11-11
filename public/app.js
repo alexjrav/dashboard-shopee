@@ -1,11 +1,7 @@
+import { formatarDia, hoje, inicioDoMes, periodoDoEndereco, somarDias } from './datas.js';
+
 const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const numero = new Intl.NumberFormat('pt-BR');
-const formatoDia = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'America/Sao_Paulo',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
 
 const elementos = {
   form: document.getElementById('form-periodo'),
@@ -48,20 +44,6 @@ const tituloOriginal = document.title;
 let periodoExibido = null;
 let temaFixadoParaImpressao = false;
 
-// Datas sempre no formato AAAA-MM-DD, no horário de Brasília.
-function hoje() {
-  return formatoDia.format(new Date());
-}
-
-function somarDias(data, dias) {
-  const [ano, mes, dia] = data.split('-').map(Number);
-  return new Date(Date.UTC(ano, mes - 1, dia + dias)).toISOString().slice(0, 10);
-}
-
-function inicioDoMes(data) {
-  return `${data.slice(0, 7)}-01`;
-}
-
 function periodoDoAtalho(atalho) {
   const atual = hoje();
   switch (atalho) {
@@ -82,11 +64,6 @@ function periodoDoAtalho(atalho) {
     default:
       return [atual, atual];
   }
-}
-
-function formatarDia(data) {
-  const [ano, mes, dia] = data.split('-');
-  return `${dia}/${mes}/${ano}`;
 }
 
 function marcarAtalho(ativo) {
@@ -263,14 +240,12 @@ function atualizarLinkDeGastos(inicio, fim) {
 
 // Ao voltar da tela de gastos (/?inicio=...&fim=...), reabre o mesmo período.
 function abrirPeriodoInicial() {
-  const parametros = new URLSearchParams(window.location.search);
-  const inicio = parametros.get('inicio');
-  const fim = parametros.get('fim');
-  const valida = (data) => /^\d{4}-\d{2}-\d{2}$/.test(data ?? '');
-  if (!valida(inicio) || !valida(fim) || fim < inicio) {
+  const periodo = periodoDoEndereco(window.location.search);
+  if (!periodo) {
     aplicarAtalho('7dias');
     return;
   }
+  const { inicio, fim } = periodo;
   const atalho = ['hoje', 'ontem', '7dias', 'mes', 'mesPassado'].find((nome) => {
     const [i, f] = periodoDoAtalho(nome);
     return i === inicio && f === fim;

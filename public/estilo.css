@@ -501,6 +501,10 @@ a.botao {
   margin-top: 14px;
 }
 
+.bloco.sem-margem-topo {
+  margin-top: 0;
+}
+
 a.botao-secundario.botao-largo-sec {
   display: flex;
   justify-content: center;

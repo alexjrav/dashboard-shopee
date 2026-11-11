@@ -113,7 +113,8 @@ export function diaEmBrasilia(timestamp: number): string {
   return formatoDia.format(new Date(timestamp * 1000));
 }
 
-function dataValida(texto: string): boolean {
+// Formato AAAA-MM-DD e dia que existe no calendário. Usada também na validação dos gastos.
+export function dataValida(texto: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
     return false;
   }
