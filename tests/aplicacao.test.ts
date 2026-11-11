@@ -254,6 +254,39 @@ test('recusa alterações enviadas a partir de outro site', async () => {
   assert.ok(await contexto.repositorio.buscarUsuario(ISABELY.id));
 });
 
+test('toda resposta leva os cabeçalhos de segurança', async () => {
+  const contexto = criarContexto();
+  const cookie = await logar(contexto);
+  const respostas = [
+    await pedir(contexto, '/login'), // arquivo público
+    await pedir(contexto, '/'), // redirecionamento sem login
+    await pedir(contexto, '/api/eu'), // 401 da API
+    await pedir(contexto, '/api/eu', { headers: { Cookie: cookie } }), // API com login
+    await pedir(contexto, '/gastos', { headers: { Cookie: cookie } }), // página com login
+  ];
+  for (const resposta of respostas) {
+    const politica = resposta.headers.get('Content-Security-Policy') ?? '';
+    assert.match(politica, /script-src 'self'(;|$)/, `status ${resposta.status}`);
+    assert.match(politica, /frame-ancestors 'none'/);
+    assert.doesNotMatch(politica, /unsafe-inline|unsafe-eval/);
+    assert.equal(resposta.headers.get('X-Content-Type-Options'), 'nosniff');
+    assert.equal(resposta.headers.get('X-Frame-Options'), 'DENY');
+  }
+});
+
+test('os cabeçalhos de segurança não mudam status, corpo nem cookies', async () => {
+  const contexto = criarContexto();
+  const pagina = await pedir(contexto, '/login');
+  assert.equal(await pagina.text(), 'arquivo /login');
+  const saida = await pedir(contexto, '/api/sair', { method: 'POST' });
+  assert.equal(saida.status, 204);
+  assert.match(cookies(saida)[0], /^sessao=;.*Max-Age=0/);
+});
+
+test('o script de tema fica acessível na tela de login', async () => {
+  assert.equal((await pedir(criarContexto(), '/tema.js')).status, 200);
+});
+
 test('o atalho de desenvolvimento só funciona no computador e com o modo ligado', async () => {
   const ligado = criarContexto({ modoDesenvolvimento: true });
   const local = await pedir(ligado, '/auth/dev', {}, 'http://localhost:8787');
