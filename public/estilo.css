@@ -160,11 +160,17 @@ h1 {
   cursor: pointer;
 }
 
+/* O período escolhido é marcado por cor, contorno mais grosso e "✓",
+   para continuar visível em escala de cinza ou para quem não distingue cores. */
 .atalho[aria-pressed="true"] {
   background: var(--destaque-fundo);
-  border-color: var(--destaque);
+  border: 2px solid var(--destaque);
   color: var(--destaque);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.atalho[aria-pressed="true"]::before {
+  content: "✓ ";
 }
 
 .datas {
