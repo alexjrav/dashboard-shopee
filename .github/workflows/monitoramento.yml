@@ -1,0 +1,77 @@
+# Monitoramento de disponibilidade do painel publicado.
+# A cada 15 minutos (e pelo botão "Run workflow"), confere o endereço de produção.
+# Se alguma verificação falhar: a execução fica vermelha (DOWN), o GitHub avisa por e-mail
+# e um issue "Painel fora do ar" é aberto no repositório. Quando volta, o issue é fechado.
+name: Monitoramento
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: monitoramento
+  cancel-in-progress: false
+
+env:
+  ENDERECO: https://painel-comissoes-shopee.painel-afiliado.workers.dev
+  TITULO_ALERTA: "Alerta: painel fora do ar"
+
+jobs:
+  verificar:
+    name: Verificar se o painel está no ar
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Saúde do servidor e do banco (/api/saude deve responder 200 e status ok)
+        id: saude
+        run: |
+          corpo=$(curl --silent --show-error --fail --retry 3 --retry-delay 10 --max-time 20 "$ENDERECO/api/saude")
+          echo "Resposta: $corpo"
+          echo "$corpo" | grep -q '"status":"ok"'
+
+      - name: Tela de login no ar (200) com cabeçalho de segurança
+        run: |
+          cabecalhos=$(curl --silent --show-error --fail --retry 3 --retry-delay 10 --max-time 20 -D - -o /dev/null "$ENDERECO/login")
+          echo "$cabecalhos" | head -1
+          echo "$cabecalhos" | grep -qi '^content-security-policy:'
+
+      - name: Proteção de acesso funcionando (API sem login responde 401)
+        run: |
+          codigo=$(curl --silent --output /dev/null --write-out '%{http_code}' --retry 3 --retry-delay 10 --max-time 20 "$ENDERECO/api/eu")
+          echo "Código HTTP: $codigo"
+          test "$codigo" = "401"
+
+      - name: Tempo de resposta da rota de saúde
+        if: always()
+        run: |
+          curl --silent --output /dev/null --max-time 20 \
+            --write-out 'Tempo total: %{time_total}s | HTTP %{http_code}\n' "$ENDERECO/api/saude" || true
+
+      - name: Abrir alerta (status DOWN)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          existente=$(gh issue list --state open --search "\"$TITULO_ALERTA\" in:title" --json number --jq '.[0].number')
+          detalhe="Falha detectada em $(date -u '+%d/%m/%Y %H:%M') UTC. Execução: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -n "$existente" ]; then
+            gh issue comment "$existente" --body "$detalhe"
+          else
+            gh issue create --title "$TITULO_ALERTA" --body "O monitoramento não conseguiu confirmar que $ENDERECO está no ar. $detalhe"
+          fi
+
+      - name: Fechar alerta aberto (status UP de novo)
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          for numero in $(gh issue list --state open --search "\"$TITULO_ALERTA\" in:title" --json number --jq '.[].number'); do
+            gh issue close "$numero" --comment "Painel voltou a responder em $(date -u '+%d/%m/%Y %H:%M') UTC."
+          done

@@ -60,7 +60,7 @@ teste-api-shopee/
 │   └── relatorio.ts       Cálculos: totais, status, dias, produtos, ROI, fuso de Brasília
 ├── public/                Telas: login, painel (index), gastos, configurações, estilo, scripts
 ├── migrations/            Criação e alteração das tabelas do banco
-├── tests/                 Testes automáticos (64)
+├── tests/                 Testes automáticos (66)
 ├── docs/                  Guia em PDF e protótipo das telas (docs/prototipo)
 ├── scripts/descobrir_campos.ts   Lista o que a API da Shopee oferece (usa o .env)
 ├── wrangler.jsonc         Configuração do Worker, do banco e dos arquivos da tela
@@ -80,7 +80,7 @@ teste-api-shopee/
 ```bash
 npm install
 npm run dev        # aplica as migrações no banco local e abre em http://localhost:8787
-npm test           # roda os 64 testes automáticos
+npm test           # roda os 66 testes automáticos
 npm run test:cobertura   # roda os testes e mostra a cobertura por arquivo (87,70% das linhas em 12/11/2026)
 ```
 
@@ -161,6 +161,7 @@ Excluir a conta (Configurações) apaga o usuário, as credenciais e os gastos.
 | `POST` / `DELETE /api/credenciais` | Logada | Valida e salva / remove credenciais da Shopee |
 | `DELETE /api/conta` | Logada | Exclui a conta e os dados |
 | `POST /api/sair` | Qualquer pessoa | Encerra a sessão |
+| `GET /api/saude` | Qualquer pessoa | Saúde do servidor e do banco, para o monitoramento |
 
 ---
 
@@ -317,6 +318,14 @@ A rotina é: `npm test`, `git add` dos arquivos alterados, `git commit -m "tipo:
 - Arquivo: `.github/workflows/ci.yml`. Roda a cada envio para a `main`, a cada pull request e também pelo botão **Run workflow** na aba **Actions**.
 - Etapas: (1) **Testes automatizados e cobertura**, com `npm ci` e `npm run test:cobertura` no Node.js 24; (2) **Build do Worker**, com `wrangler deploy --dry-run`, que gera o pacote sem publicar. O build só roda se os testes passarem.
 - Não usa segredos: a publicação na Cloudflare continua manual (`npm run deploy`), depois de a CI ficar verde.
+
+---
+
+### 9.2 Monitoramento de disponibilidade
+- Rota pública `GET /api/saude`: responde `200 {"status":"ok","banco":"ok"}` quando o Worker e o banco D1 respondem, e `503` quando o banco falha. Não exige login nem expõe dados.
+- Workflow `.github/workflows/monitoramento.yml`: a cada 15 minutos (o GitHub pode atrasar execuções agendadas) e pelo botão **Run workflow**, confere no endereço publicado a rota de saúde, a tela de login com o cabeçalho de segurança e o 401 da API sem login, e registra o tempo de resposta.
+- Se algo falhar (status DOWN): a execução fica vermelha na aba **Actions**, o GitHub envia e-mail e um issue **"Alerta: painel fora do ar"** é aberto (ou comentado, se já estiver aberto). Quando volta (UP), o issue é fechado automaticamente.
+- Complemento: o painel da Cloudflare (Workers & Pages > `painel-comissoes-shopee` > Observability) mostra requisições, erros e logs; `npx wrangler tail` mostra os logs ao vivo.
 
 ---
 
