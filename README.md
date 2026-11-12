@@ -81,6 +81,7 @@ teste-api-shopee/
 npm install
 npm run dev        # aplica as migrações no banco local e abre em http://localhost:8787
 npm test           # roda os 64 testes automáticos
+npm run test:cobertura   # roda os testes e mostra a cobertura por arquivo (87,70% das linhas em 12/11/2026)
 ```
 
 - O `.dev.vars` guarda os segredos locais. Copie o `.dev.vars.example` e preencha (seção 7).
