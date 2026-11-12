@@ -125,4 +125,27 @@ elementos.sair.addEventListener('click', async () => {
   window.location.replace('/login');
 });
 
+// Cor do painel: aplica na hora e guarda neste aparelho (o tema.js reaplica em todas as páginas).
+// Só os botões: a própria página (<html>) também recebe data-cor quando o rosa está ativo.
+const botoesDeCor = document.querySelectorAll('button[data-cor]');
+
+function marcarCor(cor) {
+  for (const botao of botoesDeCor) botao.setAttribute('aria-pressed', String(botao.dataset.cor === cor));
+}
+
+function escolherCor(cor) {
+  if (cor === 'rosa') document.documentElement.dataset.cor = 'rosa';
+  else delete document.documentElement.dataset.cor;
+  try {
+    if (cor === 'rosa') localStorage.setItem('cor', 'rosa');
+    else localStorage.removeItem('cor');
+  } catch {
+    // Sem armazenamento, a cor vale só até fechar a página.
+  }
+  marcarCor(cor);
+}
+
+for (const botao of botoesDeCor) botao.addEventListener('click', () => escolherCor(botao.dataset.cor));
+marcarCor(document.documentElement.dataset.cor === 'rosa' ? 'rosa' : 'laranja');
+
 carregar().catch(() => mostrar(elementos.erro, 'Sem conexão. Recarregue a página.'));

@@ -50,6 +50,43 @@
   color-scheme: dark;
 }
 
+/* Tema rosa, escolhido em Configurações. Contraste conferido: menor par 4,88:1 (claro) e 5,65:1 (noturno).
+   Verde (confirmado) e vermelho (erro) continuam os mesmos, porque têm significado. */
+:root[data-cor="rosa"] {
+  --fundo: #fdf2f8;
+  --superficie: #ffffff;
+  --texto: #2a1621;
+  --texto-suave: #6b4a5c;
+  --borda: #f0cfe0;
+  --destaque: #be185d;
+  --destaque-fundo: #fce7f3;
+  --texto-botao: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-cor="rosa"]:not([data-tema="claro"]) {
+    --fundo: #1a1218;
+    --superficie: #251a22;
+    --texto: #f6edf2;
+    --texto-suave: #c9aebd;
+    --borda: #43303d;
+    --destaque: #f472b6;
+    --destaque-fundo: #3b1d2f;
+    --texto-botao: #2a0a1c;
+  }
+}
+
+:root[data-cor="rosa"][data-tema="escuro"] {
+  --fundo: #1a1218;
+  --superficie: #251a22;
+  --texto: #f6edf2;
+  --texto-suave: #c9aebd;
+  --borda: #43303d;
+  --destaque: #f472b6;
+  --destaque-fundo: #3b1d2f;
+  --texto-botao: #2a0a1c;
+}
+
 * {
   box-sizing: border-box;
 }
