@@ -274,6 +274,16 @@ async function responder(requisicao: Request, ambiente: Ambiente): Promise<Respo
     return json(403, { erro: 'Origem não permitida.' });
   }
 
+  // Rota pública de saúde para o monitoramento: confirma servidor e banco sem expor nenhum dado.
+  if (metodo === 'GET' && url.pathname === '/api/saude') {
+    try {
+      await ambiente.repositorio.verificarConexao();
+      return json(200, { status: 'ok', banco: 'ok' });
+    } catch (erro) {
+      console.error(erro);
+      return json(503, { status: 'falha', banco: 'indisponivel' });
+    }
+  }
   if (metodo === 'GET' && url.pathname === '/auth/google') {
     return iniciarLoginGoogle(url, config, seguro);
   }

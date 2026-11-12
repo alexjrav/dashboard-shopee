@@ -283,6 +283,23 @@ test('os cabeçalhos de segurança não mudam status, corpo nem cookies', async 
   assert.match(cookies(saida)[0], /^sessao=;.*Max-Age=0/);
 });
 
+test('a rota de saúde responde sem login e não expõe dados', async () => {
+  const resposta = await pedir(criarContexto(), '/api/saude');
+  assert.equal(resposta.status, 200);
+  assert.deepEqual(await resposta.json(), { status: 'ok', banco: 'ok' });
+  assert.equal(resposta.headers.get('Cache-Control'), 'no-store');
+});
+
+test('a rota de saúde responde 503 quando o banco falha', async () => {
+  const contexto = criarContexto();
+  contexto.repositorio.verificarConexao = async () => {
+    throw new Error('D1 fora do ar');
+  };
+  const resposta = await pedir(contexto, '/api/saude');
+  assert.equal(resposta.status, 503);
+  assert.deepEqual(await resposta.json(), { status: 'falha', banco: 'indisponivel' });
+});
+
 test('o script de tema fica acessível na tela de login', async () => {
   assert.equal((await pedir(criarContexto(), '/tema.js')).status, 200);
 });

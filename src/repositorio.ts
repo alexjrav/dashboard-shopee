@@ -20,6 +20,8 @@ export interface Repositorio {
   salvarGasto(usuarioId: string, gasto: NovoGasto): Promise<Gasto>;
   // Devolve false se o gasto não existe ou é de outra usuária.
   excluirGasto(usuarioId: string, id: number): Promise<boolean>;
+  // Usada pelo monitoramento: lança erro se o banco não responder.
+  verificarConexao(): Promise<void>;
 }
 
 // Só a parte da API do D1 que usamos.
@@ -110,6 +112,10 @@ export function repositorioD1(banco: BancoD1): Repositorio {
         .run();
       return (resultado.meta?.changes ?? 0) > 0;
     },
+    async verificarConexao() {
+      const linha = await banco.prepare('SELECT 1 AS ok').first<{ ok: number }>();
+      if (linha?.ok !== 1) throw new Error('O banco não respondeu à verificação.');
+    },
   };
 }
 
@@ -163,6 +169,9 @@ export function repositorioEmMemoria(): Repositorio {
       if (indice === -1) return false;
       gastos.splice(indice, 1);
       return true;
+    },
+    async verificarConexao() {
+      // Em memória, o "banco" está sempre disponível.
     },
   };
 }
