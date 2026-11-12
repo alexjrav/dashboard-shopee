@@ -10,6 +10,7 @@
   --confirmado-fundo: #e7f5f2;
   --erro: #b42318;
   --erro-fundo: #fef3f2;
+  --texto-botao: #ffffff;
   --raio: 14px;
   color-scheme: light;
 }
@@ -28,6 +29,7 @@
     --confirmado-fundo: #132b29;
     --erro: #fda29b;
     --erro-fundo: #3a1f1d;
+    --texto-botao: #1f1206;
     color-scheme: dark;
   }
 }
@@ -44,6 +46,7 @@
   --confirmado-fundo: #132b29;
   --erro: #fda29b;
   --erro-fundo: #3a1f1d;
+  --texto-botao: #1f1206;
   color-scheme: dark;
 }
 
@@ -83,7 +86,7 @@ body {
   min-height: 44px;
   min-width: 44px;
   padding: 8px 14px;
-  border: 1px solid var(--borda);
+  border: 1px solid var(--texto-suave);
   border-radius: 10px;
   background: var(--superficie);
   color: var(--texto);
@@ -150,7 +153,7 @@ h1 {
 
 .atalho {
   min-height: 44px;
-  border: 1px solid var(--borda);
+  border: 1px solid var(--texto-suave);
   background: transparent;
   color: var(--texto);
   border-radius: 999px;
@@ -191,7 +194,7 @@ input[type="date"] {
   width: 100%;
   min-height: 44px;
   padding: 8px 10px;
-  border: 1px solid var(--borda);
+  border: 1px solid var(--texto-suave);
   border-radius: 10px;
   background: var(--fundo);
   color: var(--texto);
@@ -204,7 +207,7 @@ input[type="date"] {
   border: 0;
   border-radius: 10px;
   background: var(--destaque);
-  color: #ffffff;
+  color: var(--texto-botao);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -475,7 +478,7 @@ a.botao-secundario {
   width: 100%;
   min-height: 44px;
   padding: 8px 12px;
-  border: 1px solid var(--borda);
+  border: 1px solid var(--texto-suave);
   border-radius: 10px;
   background: var(--fundo);
   color: var(--texto);
