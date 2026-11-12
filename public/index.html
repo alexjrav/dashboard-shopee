@@ -54,53 +54,68 @@
           <button type="button" id="gerar-pdf" class="botao-secundario">Gerar PDF</button>
         </div>
 
-        <div class="cartoes">
-          <article id="cartao-roi" class="cartao roi">
-            <h3>ROI confirmado</h3>
-            <p id="roi-confirmado" class="valor"></p>
-            <p id="selo-roi" class="selo"></p>
-          </article>
-          <article class="cartao">
-            <h3>Gasto com anúncios</h3>
-            <p id="gasto-anuncios" class="valor"></p>
-            <p id="quantidade-gastos" class="detalhe"></p>
-          </article>
-          <article class="cartao">
-            <h3>ROI estimado</h3>
-            <p id="roi-estimado" class="valor"></p>
-            <p class="detalhe"><span class="etiqueta">estimativa</span> com a comissão prevista</p>
-          </article>
-          <article class="cartao destaque">
-            <h3>Comissão prevista</h3>
-            <p id="comissao-prevista" class="valor"></p>
-            <p class="detalhe">Pode mudar até a confirmação</p>
-          </article>
-          <article class="cartao confirmado">
-            <h3>Comissão confirmada</h3>
-            <p id="comissao-confirmada" class="valor"></p>
-            <p class="detalhe">Pedidos concluídos</p>
-          </article>
-          <article class="cartao">
-            <h3>Pedidos</h3>
-            <p id="pedidos-validos" class="valor"></p>
-            <p class="detalhe">Sem os cancelados</p>
-          </article>
-          <article class="cartao">
-            <h3>Itens vendidos</h3>
-            <p id="itens-vendidos" class="valor"></p>
-            <p class="detalhe">Soma das quantidades</p>
-          </article>
-          <article class="cartao">
-            <h3>Valor dos pedidos</h3>
-            <p id="valor-pedidos" class="valor"></p>
-            <p class="detalhe">Valor pago pelos compradores</p>
-          </article>
-          <article class="cartao">
-            <h3>Cancelados</h3>
-            <p id="pedidos-cancelados" class="valor"></p>
-            <p class="detalhe">Não geram comissão</p>
-          </article>
-        </div>
+        <section class="grupo-cartoes" aria-labelledby="titulo-grupo-roi">
+          <h2 id="titulo-grupo-roi" class="titulo-grupo">ROI</h2>
+          <div class="cartoes cartoes-roi">
+            <article id="cartao-roi" class="cartao roi">
+              <h3>ROI confirmado</h3>
+              <p id="roi-confirmado" class="valor"></p>
+              <p id="selo-roi" class="selo"></p>
+            </article>
+            <article class="cartao">
+              <h3>Gasto com anúncios</h3>
+              <p id="gasto-anuncios" class="valor"></p>
+              <p id="quantidade-gastos" class="detalhe"></p>
+            </article>
+            <article class="cartao">
+              <h3>ROI estimado</h3>
+              <p id="roi-estimado" class="valor"></p>
+              <p class="detalhe"><span class="etiqueta">estimativa</span> com a comissão prevista</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="grupo-cartoes" aria-labelledby="titulo-grupo-comissoes">
+          <h2 id="titulo-grupo-comissoes" class="titulo-grupo">Comissões</h2>
+          <div class="cartoes cartoes-dois">
+            <article class="cartao destaque">
+              <h3>Comissão prevista</h3>
+              <p id="comissao-prevista" class="valor"></p>
+              <p class="detalhe">Pode mudar até a confirmação</p>
+            </article>
+            <article class="cartao confirmado">
+              <h3>Comissão confirmada</h3>
+              <p id="comissao-confirmada" class="valor"></p>
+              <p class="detalhe">Pedidos concluídos</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="grupo-cartoes" aria-labelledby="titulo-grupo-pedidos">
+          <h2 id="titulo-grupo-pedidos" class="titulo-grupo">Pedidos</h2>
+          <div class="cartoes cartoes-quatro">
+            <article class="cartao">
+              <h3>Pedidos</h3>
+              <p id="pedidos-validos" class="valor"></p>
+              <p class="detalhe">Sem os cancelados</p>
+            </article>
+            <article class="cartao">
+              <h3>Itens vendidos</h3>
+              <p id="itens-vendidos" class="valor"></p>
+              <p class="detalhe">Soma das quantidades</p>
+            </article>
+            <article class="cartao">
+              <h3>Valor dos pedidos</h3>
+              <p id="valor-pedidos" class="valor"></p>
+              <p class="detalhe">Valor pago pelos compradores</p>
+            </article>
+            <article class="cartao">
+              <h3>Cancelados</h3>
+              <p id="pedidos-cancelados" class="valor"></p>
+              <p class="detalhe">Não geram comissão</p>
+            </article>
+          </div>
+        </section>
 
         <section class="bloco" aria-labelledby="titulo-status">
           <h2 id="titulo-status" class="titulo-secao">Por status</h2>

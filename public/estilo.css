@@ -234,6 +234,25 @@ input[type="date"] {
   gap: 10px;
 }
 
+/* Cartões separados em grupos (ROI, Comissões, Pedidos), cada um com seu título. */
+.grupo-cartoes {
+  margin-top: 18px;
+}
+
+.grupo-cartoes:first-of-type {
+  margin-top: 0;
+}
+
+.titulo-grupo {
+  margin: 0 0 8px;
+  padding-left: 10px;
+  border-left: 4px solid var(--destaque);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .cartao {
   padding: 14px;
 }
@@ -681,8 +700,16 @@ input[aria-invalid="true"] {
     padding: 0 22px;
   }
 
-  .cartoes {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .cartoes-roi {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+
+  .cartoes-roi .cartao.roi {
+    grid-column: auto;
+  }
+
+  .cartoes-quatro {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -733,8 +760,20 @@ input[aria-invalid="true"] {
     font-weight: 600;
   }
 
-  .cartoes {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .cartoes-roi {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+
+  .cartoes-roi .cartao.roi {
+    grid-column: auto;
+  }
+
+  .cartoes-quatro {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .grupo-cartoes {
+    break-inside: avoid;
   }
 
   /* O top 5 é curto: fica inteiro em uma página em vez de dividido. */
