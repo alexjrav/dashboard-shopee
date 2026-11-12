@@ -313,6 +313,13 @@ A rotina é: `npm test`, `git add` dos arquivos alterados, `git commit -m "tipo:
 
 ---
 
+### 9.1 Integração contínua (GitHub Actions)
+- Arquivo: `.github/workflows/ci.yml`. Roda a cada envio para a `main`, a cada pull request e também pelo botão **Run workflow** na aba **Actions**.
+- Etapas: (1) **Testes automatizados e cobertura**, com `npm ci` e `npm run test:cobertura` no Node.js 24; (2) **Build do Worker**, com `wrangler deploy --dry-run`, que gera o pacote sem publicar. O build só roda se os testes passarem.
+- Não usa segredos: a publicação na Cloudflare continua manual (`npm run deploy`), depois de a CI ficar verde.
+
+---
+
 ## 10. Segurança em resumo
 
 - Secret da Shopee: criptografado no banco, nunca enviado ao navegador, não aparece em logs.

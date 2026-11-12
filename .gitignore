@@ -7,3 +7,4 @@ node_modules/
 copia*.sql
 backup*.sql
 *.log
+dist/

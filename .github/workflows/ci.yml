@@ -1,0 +1,67 @@
+# Integração contínua: a cada envio para a main e a cada pull request, roda os testes
+# automatizados com cobertura e gera o pacote do Worker, sem publicar nada.
+# Não usa nenhum segredo: a publicação na Cloudflare continua manual (npm run deploy).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    name: Testes automatizados e cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Preparar o Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências (versões travadas no package-lock.json)
+        run: npm ci
+
+      - name: Rodar os testes com cobertura
+        run: npm run test:cobertura
+
+  build:
+    name: Build do Worker (sem publicar)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: testes
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Preparar o Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar o pacote do Worker (wrangler deploy --dry-run)
+        run: npx wrangler deploy --dry-run --outdir dist
+        env:
+          WRANGLER_SEND_METRICS: "false"
+
+      - name: Conferir o pacote gerado
+        run: |
+          test -s dist/worker.js
+          ls -l dist
